@@ -5,6 +5,7 @@ import '../../../../shared/widgets/glass_input.dart';
 import '../../../../shared/widgets/glass_button.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
