@@ -110,11 +110,17 @@ class DashboardScreen extends ConsumerWidget {
       child: Column(
         children: [
           const SizedBox(height: 48),
+          Image.asset(
+            'assets/images/logo.png',
+            height: 60,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 12),
           const Text(
             'Siam Kassam',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           _buildSidebarItem(Icons.dashboard_outlined, 'Panel', true, () => context.go('/')),
           _buildSidebarItem(Icons.people_outline, 'Müştərilər', false, () => context.push('/customers')),
           _buildSidebarItem(Icons.inventory_2_outlined, 'Məhsullar', false, () => context.push('/products')),

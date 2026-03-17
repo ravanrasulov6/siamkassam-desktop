@@ -91,10 +91,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: authState.isLoading
                           ? () {}
                           : () {
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text.trim();
+                              final name = _nameController.text.trim();
+                              
+                              if (email.isEmpty || password.isEmpty || name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Zəhmət olmasa bütün xanaları doldurun')),
+                                );
+                                return;
+                              }
+                              
                               ref.read(authProvider.notifier).register(
-                                    _emailController.text,
-                                    _passwordController.text,
-                                    fullName: _nameController.text,
+                                    email,
+                                    password,
+                                    fullName: name,
                                   );
                             },
                       child: authState.isLoading

@@ -83,9 +83,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: authState.isLoading
                           ? () {}
                           : () {
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text.trim();
+                              
+                              if (email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('E-poçt və şifrə daxil edilməlidir')),
+                                );
+                                return;
+                              }
+                              
                               ref.read(authProvider.notifier).login(
-                                    _emailController.text,
-                                    _passwordController.text,
+                                    email,
+                                    password,
                                   );
                             },
                       child: authState.isLoading
@@ -101,9 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () {
-                        // Navigate to register
-                      },
+                      onPressed: () => context.go('/register'),
                       child: const Text(
                         'Hesabınız yoxdur? Qeydiyyatdan keçin',
                         style: TextStyle(color: AppColors.primary),
