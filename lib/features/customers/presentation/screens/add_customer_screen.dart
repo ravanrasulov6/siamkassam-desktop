@@ -1,0 +1,105 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/glass_input.dart';
+import '../../../../shared/widgets/glass_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../providers/customer_provider.dart';
+import '../../domain/entities/customer_entity.dart';
+import 'package:go_router/go_router.dart';
+
+class AddCustomerScreen extends ConsumerStatefulWidget {
+  const AddCustomerScreen({super.key});
+
+  @override
+  ConsumerState<AddCustomerScreen> createState() => _AddCustomerScreenState();
+}
+
+class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _save() async {
+    if (_nameController.text.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final repository = ref.read(customerRepositoryProvider);
+      await repository.addCustomer(CustomerEntity(
+        id: '', // Generated in repository
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ));
+      
+      // Refresh list and go back
+      ref.invalidate(customerListProvider);
+      if (mounted) context.pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Xəta baş verdi: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Yeni Müştəri'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFE0E7FF), Color(0xFFF1F5F9), Color(0xFFE0E7FF)],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: GlassCard(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    GlassInput(
+                      labelText: 'Ad Soyad',
+                      controller: _nameController,
+                      prefixIcon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                    GlassInput(
+                      labelText: 'Telefon',
+                      controller: _phoneController,
+                      prefixIcon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 32),
+                    GlassButton(
+                      onPressed: _isLoading ? () {} : _save,
+                      child: _isLoading 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Yadda Saxla'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
