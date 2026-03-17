@@ -65,10 +65,10 @@ class DashboardScreen extends ConsumerWidget {
                       mainAxisSpacing: 24,
                       childAspectRatio: 1.5,
                       children: [
-                        _buildStatCard('Müştərilər', '24', Icons.people_outline, AppColors.primary),
-                        _buildStatCard('Məhsullar', '156', Icons.inventory_2_outlined, Colors.orange),
-                        _buildStatCard('Bugünkü Satış', '450 AZN', Icons.payments_outlined, AppColors.success),
-                        _buildStatCard('Borclar', '1,200 AZN', Icons.money_off_outlined, AppColors.error),
+                        _buildAnimatedStatCard(0, 'Müştərilər', '24', Icons.people_outline, AppColors.primary),
+                        _buildAnimatedStatCard(1, 'Məhsullar', '156', Icons.inventory_2_outlined, Colors.orange),
+                        _buildAnimatedStatCard(2, 'Bugünkü Satış', '450 AZN', Icons.payments_outlined, AppColors.success),
+                        _buildAnimatedStatCard(3, 'Borclar', '1,200 AZN', Icons.money_off_outlined, AppColors.error),
                       ],
                     ),
                     
@@ -153,19 +153,55 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildAnimatedStatCard(int index, String title, String value, IconData icon, Color color) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 600 + (index * 100)),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: _buildStatCard(title, value, icon, color),
+    );
+  }
+
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return GlassCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 16),
-          Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          bool isHovered = false;
+          return MouseRegion(
+            onEnter: (_) => setState(() => isHovered = true),
+            onExit: (_) => setState(() => isHovered = false),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              transform: isHovered 
+                ? (Matrix4.identity()..translate(0, -4, 0)..scale(1.02))
+                : Matrix4.identity(),
+              child: GlassCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: color, size: 32),
+                    const SizedBox(height: 16),
+                    Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                    const SizedBox(height: 4),
+                    Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

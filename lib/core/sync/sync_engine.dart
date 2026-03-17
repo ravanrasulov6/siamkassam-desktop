@@ -34,17 +34,28 @@ class SyncEngine {
     if (status != NetworkStatus.online) return;
 
     _isSyncing = true;
+    print('SyncEngine: Synchronization started...');
+    
     try {
-      await Future.wait<void>([
-        ref.read(customerRepositoryProvider).syncPendingCustomers(),
-        ref.read(productRepositoryProvider).syncPendingProducts(),
-        ref.read(debtRepositoryProvider).syncPendingDebts(),
-        ref.read(saleRepositoryProvider).syncPendingSales(),
-      ]);
+      await _syncEntity('Customers', ref.read(customerRepositoryProvider).syncPendingCustomers());
+      await _syncEntity('Products', ref.read(productRepositoryProvider).syncPendingProducts());
+      await _syncEntity('Debts', ref.read(debtRepositoryProvider).syncPendingDebts());
+      await _syncEntity('Sales', ref.read(saleRepositoryProvider).syncPendingSales());
+      
+      print('SyncEngine: Synchronization completed successfully.');
     } catch (e) {
-      // Log sync error
+      print('SyncEngine: Global synchronization error: $e');
     } finally {
       _isSyncing = false;
+    }
+  }
+
+  Future<void> _syncEntity(String name, Future<void> syncFuture) async {
+    try {
+      await syncFuture;
+      print('SyncEngine: $name synced successfully.');
+    } catch (e) {
+      print('SyncEngine: Error syncing $name: $e');
     }
   }
 

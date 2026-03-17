@@ -6,7 +6,7 @@ import 'core/sync/sync_engine.dart';
 import 'core/theme/glass_theme.dart';
 import 'core/database/isar_provider.dart';
 import 'core/router/app_router.dart';
-
+import 'shared/widgets/error_boundary.dart';
 
 
 import 'package:window_manager/window_manager.dart';
