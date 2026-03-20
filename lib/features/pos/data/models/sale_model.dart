@@ -58,6 +58,7 @@ class SaleModel {
 @embedded
 class SaleItemModel {
   late String id;
+  late String saleId;
   late String productId;
   late String productName;
   late double quantity;
@@ -67,6 +68,7 @@ class SaleItemModel {
   SaleItemEntity toEntity() {
     return SaleItemEntity(
       id: id,
+      saleId: saleId,
       productId: productId,
       productName: productName,
       quantity: quantity,
@@ -78,6 +80,7 @@ class SaleItemModel {
   static SaleItemModel fromEntity(SaleItemEntity entity) {
     return SaleItemModel()
       ..id = entity.id
+      ..saleId = entity.saleId
       ..productId = entity.productId
       ..productName = entity.productName
       ..quantity = entity.quantity

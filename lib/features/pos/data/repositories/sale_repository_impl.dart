@@ -38,14 +38,17 @@ class SaleRepositoryImpl implements SaleRepository {
           ..id = json['id']
           ..customerId = json['customer_id']
           ..customerName = json['customer_name']
-          ..items = itemsJson.map((i) => SaleItemModel()
-            ..id = i['id']
-            ..productId = i['product_id']
-            ..productName = i['product_name']
-            ..quantity = (i['quantity'] as num).toDouble()
-            ..price = (i['price'] as num).toDouble()
-            ..total = (i['total'] as num).toDouble()
-          ).toList()
+          ..items = itemsJson.map((i) {
+            final item = SaleItemModel()
+              ..id = i['id']
+              ..saleId = json['id']
+              ..productId = i['product_id']
+              ..productName = i['product_name']
+              ..quantity = (i['quantity'] as num).toDouble()
+              ..price = (i['price'] as num).toDouble()
+              ..total = (i['total'] as num).toDouble();
+            return item;
+          }).toList()
           ..subtotal = (json['subtotal'] as num).toDouble()
           ..discount = (json['discount'] as num).toDouble()
           ..total = (json['total'] as num).toDouble()
@@ -69,6 +72,7 @@ class SaleRepositoryImpl implements SaleRepository {
       customerName: sale.customerName,
       items: sale.items.map((i) => SaleItemEntity(
         id: const Uuid().v4(),
+        saleId: saleId,
         productId: i.productId,
         productName: i.productName,
         quantity: i.quantity,

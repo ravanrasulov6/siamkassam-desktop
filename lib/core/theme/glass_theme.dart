@@ -22,12 +22,12 @@ class GlassTheme {
         ),
         headlineMedium: GoogleFonts.outfit(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.semibold,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.01,
         ),
         titleLarge: GoogleFonts.outfit(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.semibold,
+          fontWeight: FontWeight.w600,
         ),
         bodyLarge: GoogleFonts.inter(color: AppColors.textPrimary),
         bodyMedium: GoogleFonts.inter(color: AppColors.textSecondary),
