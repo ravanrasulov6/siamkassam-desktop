@@ -41,5 +41,65 @@ final saleListProvider = AsyncNotifierProvider<SaleListNotifier, List<SaleEntity
   return SaleListNotifier();
 });
 
-// POS Cart Provider
-final cartProvider = StateProvider<List<SaleItemEntity>>((ref) => []);
+// POS Cart Notifier
+class CartNotifier extends StateNotifier<List<SaleItemEntity>> {
+  CartNotifier() : super([]);
+
+  void addItem(SaleItemEntity item) {
+    state = [...state, item];
+  }
+
+  void addProduct(dynamic product) {
+    final existingIndex = state.indexWhere((item) => item.productId == product.id);
+    
+    if (existingIndex != -1) {
+      final updatedCart = [...state];
+      final item = updatedCart[existingIndex];
+      updatedCart[existingIndex] = item.copyWith(
+        quantity: item.quantity + 1,
+        total: (item.quantity + 1) * item.price,
+      );
+      state = updatedCart;
+    } else {
+      state = [
+        ...state,
+        SaleItemEntity(
+          id: '', // Generated on save
+          saleId: '',
+          productId: product.id,
+          productName: product.name,
+          quantity: 1,
+          price: product.price,
+          total: product.price,
+        ),
+      ];
+    }
+  }
+
+  void removeItem(int index) {
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if (i != index) state[i]
+    ];
+  }
+
+  void updateQuantity(int index, double quantity) {
+    final updatedCart = [...state];
+    final item = updatedCart[index];
+    updatedCart[index] = item.copyWith(
+      quantity: quantity,
+      total: quantity * item.price,
+    );
+    state = updatedCart;
+  }
+
+  void clear() {
+    state = [];
+  }
+
+  double get subtotal => state.fold(0, (sum, item) => sum + item.total);
+}
+
+final cartProvider = StateNotifierProvider<CartNotifier, List<SaleItemEntity>>((ref) {
+  return CartNotifier();
+});

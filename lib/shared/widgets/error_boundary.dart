@@ -66,8 +66,19 @@ class _GlobalErrorBoundaryState extends State<GlobalErrorBoundary> {
       );
     }
 
-    return ErrorWidget.builder == null 
-      ? widget.child 
-      : widget.child;
+    return widget.child;
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      if (mounted) {
+        setState(() {
+          _error = details.exception;
+        });
+      }
+      return const SizedBox.shrink();
+    };
   }
 }

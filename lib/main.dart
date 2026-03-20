@@ -53,11 +53,13 @@ class MainApp extends ConsumerWidget {
 
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'Siam Kassam',
-      debugShowCheckedModeBanner: false,
-      theme: GlassTheme.light,
-      routerConfig: router,
+    return GlobalErrorBoundary(
+      child: MaterialApp.router(
+        title: 'Siam Kassam',
+        debugShowCheckedModeBanner: false,
+        theme: GlassTheme.light,
+        routerConfig: router,
+      ),
     );
   }
 }

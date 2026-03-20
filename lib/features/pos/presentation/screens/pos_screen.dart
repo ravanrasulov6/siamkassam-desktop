@@ -21,36 +21,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   String _paymentMethod = 'Cash';
   bool _isProcessing = false;
 
-  void _addToCart(String productId, String productName, double price) {
-    final cart = ref.read(cartProvider);
-    final index = cart.indexWhere((item) => item.productId == productId);
-    
-    if (index != -1) {
-      final updated = List<SaleItemEntity>.from(cart);
-      final item = updated[index];
-      updated[index] = SaleItemEntity(
-        id: item.id,
-        productId: item.productId,
-        productName: item.productName,
-        quantity: item.quantity + 1,
-        price: item.price,
-        total: (item.quantity + 1) * item.price,
-      );
-      ref.read(cartProvider.notifier).state = updated;
-    } else {
-      ref.read(cartProvider.notifier).state = [
-        ...cart,
-        SaleItemEntity(
-          id: '',
-          productId: productId,
-          productName: productName,
-          quantity: 1,
-          price: price,
-          total: price,
-        ),
-      ];
-    }
-  }
+  // Removed local _addToCart, now using cartProvider methods
 
   Future<void> _processSale() async {
     final cart = ref.read(cartProvider);
@@ -71,7 +42,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       );
 
       await ref.read(saleRepositoryProvider).processSale(sale);
-      ref.read(cartProvider.notifier).state = [];
+      ref.read(cartProvider.notifier).clear();
       ref.invalidate(saleListProvider);
       
       if (mounted) {
@@ -126,22 +97,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     final product = products[index];
-                    return InkWell(
-                      onTap: () => _addToCart(product.id, product.name, product.salePrice),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.inventory_2_outlined, size: 32, color: AppColors.primary),
-                            const SizedBox(height: 8),
-                            Text(product.name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text('${product.salePrice} AZN', style: const TextStyle(color: AppColors.primary)),
-                          ],
-                        ),
-                      ),
-                    );
+                    return _buildAnimatedProductCard(index, product);
                   },
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -168,8 +124,31 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: Text(item.productName),
-                            subtitle: Text('${item.quantity} x ${item.price} AZN'),
-                            trailing: Text('${item.total} AZN', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, size: 18),
+                                  onPressed: () => ref.read(cartProvider.notifier).updateQuantity(index, item.quantity - 1 > 0 ? item.quantity - 1 : 1),
+                                ),
+                                Text('${item.quantity.toInt()}'),
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                                  onPressed: () => ref.read(cartProvider.notifier).updateQuantity(index, item.quantity + 1),
+                                ),
+                                const SizedBox(width: 8),
+                                Text('x ${item.price} AZN'),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('${item.total} AZN', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                  onPressed: () => ref.read(cartProvider.notifier).removeItem(index),
+                                ),
+                              ],
+                            ),
                           );
                         },
                       ),
@@ -194,6 +173,56 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+  Widget _buildAnimatedProductCard(int index, dynamic product) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 400 + (index * 50)),
+      curve: Curves.easeOutQuad,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            bool isHovered = false;
+            return MouseRegion(
+              onEnter: (_) => setState(() => isHovered = true),
+              onExit: (_) => setState(() => isHovered = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                transform: isHovered 
+                  ? (Matrix4.identity()..translate(0, -4, 0)..scale(1.05))
+                  : Matrix4.identity(),
+                child: GestureDetector(
+                  onTap: () => ref.read(cartProvider.notifier).addProduct(product),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.inventory_2_outlined, size: 32, color: AppColors.primary),
+                        const SizedBox(height: 8),
+                        Text(product.name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text('${product.salePrice} AZN', style: const TextStyle(color: AppColors.primary)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
