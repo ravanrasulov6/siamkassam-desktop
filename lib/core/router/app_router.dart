@@ -36,7 +36,7 @@ final appRouterStateProvider = Provider<GoRouter>((ref) {
       }
 
       // Check for business context
-      if (isLoggedIn && authState.business == null && state.matchedLocation != '/onboarding') {
+      if (isLoggedIn && authState.user?.businessId == null && state.matchedLocation != '/onboarding') {
         return '/onboarding';
       }
 

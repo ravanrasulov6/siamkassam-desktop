@@ -8,6 +8,7 @@ import '../../data/repositories/customer_repository_impl.dart';
 import '../../domain/entities/customer_entity.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../../domain/use_cases/get_customers_use_case.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final customerLocalDataSourceProvider = Provider<CustomerLocalDataSource>((ref) {
   return CustomerLocalDataSource(ref.watch(isarProvider));

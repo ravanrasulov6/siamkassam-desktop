@@ -7,7 +7,7 @@ import '../../data/data_sources/sale_remote_data_source.dart';
 import '../../data/repositories/sale_repository_impl.dart';
 import '../../domain/entities/sale_entity.dart';
 import '../../domain/repositories/sale_repository.dart';
-import '../../domain/repositories/product_repository.dart'; // Added this import
+import '../../../products/domain/repositories/product_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 final saleLocalDataSourceProvider = Provider<SaleLocalDataSource>((ref) {

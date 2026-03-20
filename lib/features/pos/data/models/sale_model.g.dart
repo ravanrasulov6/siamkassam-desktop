@@ -17,55 +17,60 @@ const SaleModelSchema = CollectionSchema(
   name: r'SaleModel',
   id: 8410161235942925352,
   properties: {
-    r'createdAt': PropertySchema(
+    r'businessId': PropertySchema(
       id: 0,
+      name: r'businessId',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'customerId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'customerId',
       type: IsarType.string,
     ),
     r'customerName': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'customerName',
       type: IsarType.string,
     ),
     r'discount': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'discount',
       type: IsarType.double,
     ),
     r'id': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'id',
       type: IsarType.string,
     ),
     r'items': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'items',
       type: IsarType.objectList,
       target: r'SaleItemModel',
     ),
     r'paymentMethod': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'paymentMethod',
       type: IsarType.string,
     ),
     r'subtotal': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'subtotal',
       type: IsarType.double,
     ),
     r'syncStatus': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'syncStatus',
       type: IsarType.byte,
       enumMap: _SaleModelsyncStatusEnumValueMap,
     ),
     r'total': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'total',
       type: IsarType.double,
     )
@@ -88,6 +93,19 @@ const SaleModelSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'businessId': IndexSchema(
+      id: 2228048290814354584,
+      name: r'businessId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'businessId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -104,6 +122,7 @@ int _saleModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.businessId.length * 3;
   {
     final value = object.customerId;
     if (value != null) {
@@ -136,21 +155,22 @@ void _saleModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.customerId);
-  writer.writeString(offsets[2], object.customerName);
-  writer.writeDouble(offsets[3], object.discount);
-  writer.writeString(offsets[4], object.id);
+  writer.writeString(offsets[0], object.businessId);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.customerId);
+  writer.writeString(offsets[3], object.customerName);
+  writer.writeDouble(offsets[4], object.discount);
+  writer.writeString(offsets[5], object.id);
   writer.writeObjectList<SaleItemModel>(
-    offsets[5],
+    offsets[6],
     allOffsets,
     SaleItemModelSchema.serialize,
     object.items,
   );
-  writer.writeString(offsets[6], object.paymentMethod);
-  writer.writeDouble(offsets[7], object.subtotal);
-  writer.writeByte(offsets[8], object.syncStatus.index);
-  writer.writeDouble(offsets[9], object.total);
+  writer.writeString(offsets[7], object.paymentMethod);
+  writer.writeDouble(offsets[8], object.subtotal);
+  writer.writeByte(offsets[9], object.syncStatus.index);
+  writer.writeDouble(offsets[10], object.total);
 }
 
 SaleModel _saleModelDeserialize(
@@ -160,25 +180,26 @@ SaleModel _saleModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = SaleModel();
-  object.createdAt = reader.readDateTime(offsets[0]);
-  object.customerId = reader.readStringOrNull(offsets[1]);
-  object.customerName = reader.readStringOrNull(offsets[2]);
-  object.discount = reader.readDouble(offsets[3]);
-  object.id = reader.readString(offsets[4]);
+  object.businessId = reader.readString(offsets[0]);
+  object.createdAt = reader.readDateTime(offsets[1]);
+  object.customerId = reader.readStringOrNull(offsets[2]);
+  object.customerName = reader.readStringOrNull(offsets[3]);
+  object.discount = reader.readDouble(offsets[4]);
+  object.id = reader.readString(offsets[5]);
   object.items = reader.readObjectList<SaleItemModel>(
-        offsets[5],
+        offsets[6],
         SaleItemModelSchema.deserialize,
         allOffsets,
         SaleItemModel(),
       ) ??
       [];
   object.localId = id;
-  object.paymentMethod = reader.readString(offsets[6]);
-  object.subtotal = reader.readDouble(offsets[7]);
+  object.paymentMethod = reader.readString(offsets[7]);
+  object.subtotal = reader.readDouble(offsets[8]);
   object.syncStatus =
-      _SaleModelsyncStatusValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _SaleModelsyncStatusValueEnumMap[reader.readByteOrNull(offsets[9])] ??
           SyncStatus.synced;
-  object.total = reader.readDouble(offsets[9]);
+  object.total = reader.readDouble(offsets[10]);
   return object;
 }
 
@@ -190,16 +211,18 @@ P _saleModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readObjectList<SaleItemModel>(
             offset,
             SaleItemModelSchema.deserialize,
@@ -207,14 +230,14 @@ P _saleModelDeserializeProp<P>(
             SaleItemModel(),
           ) ??
           []) as P;
-    case 6:
-      return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readDouble(offset)) as P;
+    case 9:
       return (_SaleModelsyncStatusValueEnumMap[reader.readByteOrNull(offset)] ??
           SyncStatus.synced) as P;
-    case 9:
+    case 10:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -423,10 +446,189 @@ extension SaleModelQueryWhere
       }
     });
   }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterWhereClause> businessIdEqualTo(
+      String businessId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'businessId',
+        value: [businessId],
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterWhereClause> businessIdNotEqualTo(
+      String businessId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension SaleModelQueryFilter
     on QueryBuilder<SaleModel, SaleModel, QFilterCondition> {
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition>
+      businessIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition>
+      businessIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> businessIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'businessId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition>
+      businessIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition>
+      businessIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'businessId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<SaleModel, SaleModel, QAfterFilterCondition> createdAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1460,6 +1662,18 @@ extension SaleModelQueryLinks
     on QueryBuilder<SaleModel, SaleModel, QFilterCondition> {}
 
 extension SaleModelQuerySortBy on QueryBuilder<SaleModel, SaleModel, QSortBy> {
+  QueryBuilder<SaleModel, SaleModel, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
   QueryBuilder<SaleModel, SaleModel, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1571,6 +1785,18 @@ extension SaleModelQuerySortBy on QueryBuilder<SaleModel, SaleModel, QSortBy> {
 
 extension SaleModelQuerySortThenBy
     on QueryBuilder<SaleModel, SaleModel, QSortThenBy> {
+  QueryBuilder<SaleModel, SaleModel, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SaleModel, SaleModel, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
   QueryBuilder<SaleModel, SaleModel, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1694,6 +1920,13 @@ extension SaleModelQuerySortThenBy
 
 extension SaleModelQueryWhereDistinct
     on QueryBuilder<SaleModel, SaleModel, QDistinct> {
+  QueryBuilder<SaleModel, SaleModel, QDistinct> distinctByBusinessId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<SaleModel, SaleModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -1759,6 +1992,12 @@ extension SaleModelQueryProperty
   QueryBuilder<SaleModel, int, QQueryOperations> localIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localId');
+    });
+  }
+
+  QueryBuilder<SaleModel, String, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
     });
   }
 
@@ -1860,8 +2099,13 @@ const SaleItemModelSchema = Schema(
       name: r'quantity',
       type: IsarType.double,
     ),
-    r'total': PropertySchema(
+    r'saleId': PropertySchema(
       id: 5,
+      name: r'saleId',
+      type: IsarType.string,
+    ),
+    r'total': PropertySchema(
+      id: 6,
       name: r'total',
       type: IsarType.double,
     )
@@ -1881,6 +2125,7 @@ int _saleItemModelEstimateSize(
   bytesCount += 3 + object.id.length * 3;
   bytesCount += 3 + object.productId.length * 3;
   bytesCount += 3 + object.productName.length * 3;
+  bytesCount += 3 + object.saleId.length * 3;
   return bytesCount;
 }
 
@@ -1895,7 +2140,8 @@ void _saleItemModelSerialize(
   writer.writeString(offsets[2], object.productId);
   writer.writeString(offsets[3], object.productName);
   writer.writeDouble(offsets[4], object.quantity);
-  writer.writeDouble(offsets[5], object.total);
+  writer.writeString(offsets[5], object.saleId);
+  writer.writeDouble(offsets[6], object.total);
 }
 
 SaleItemModel _saleItemModelDeserialize(
@@ -1910,7 +2156,8 @@ SaleItemModel _saleItemModelDeserialize(
   object.productId = reader.readString(offsets[2]);
   object.productName = reader.readString(offsets[3]);
   object.quantity = reader.readDouble(offsets[4]);
-  object.total = reader.readDouble(offsets[5]);
+  object.saleId = reader.readString(offsets[5]);
+  object.total = reader.readDouble(offsets[6]);
   return object;
 }
 
@@ -1932,6 +2179,8 @@ P _saleItemModelDeserializeProp<P>(
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2474,6 +2723,142 @@ extension SaleItemModelQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'saleId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'saleId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'saleId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'saleId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SaleItemModel, SaleItemModel, QAfterFilterCondition>
+      saleIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'saleId',
+        value: '',
       ));
     });
   }
