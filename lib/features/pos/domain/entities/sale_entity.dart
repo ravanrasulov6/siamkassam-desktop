@@ -42,6 +42,7 @@ class SaleItemEntity {
 
 class SaleEntity {
   final String id;
+  final String? businessId;
   final String? customerId;
   final String? customerName;
   final List<SaleItemEntity> items;
@@ -54,6 +55,7 @@ class SaleEntity {
 
   SaleEntity({
     required this.id,
+    this.businessId,
     this.customerId,
     this.customerName,
     required this.items,

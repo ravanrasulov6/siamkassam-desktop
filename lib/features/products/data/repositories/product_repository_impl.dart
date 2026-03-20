@@ -18,30 +18,35 @@ class ProductRepositoryImpl implements ProductRepository {
   });
 
   @override
-  Future<List<ProductEntity>> getProducts() async {
+  Future<List<ProductEntity>> getProducts(String businessId) async {
     final localModels = await localDataSource.getAll();
     final entities = localModels.map((m) => m.toEntity()).toList();
 
     if (isOnline) {
-      _syncFromRemote();
+      _syncFromRemote(businessId);
     }
 
     return entities;
   }
 
-  Future<void> _syncFromRemote() async {
+  Future<void> _syncFromRemote(String businessId) async {
     try {
-      final remoteData = await remoteDataSource.fetchProducts();
+      final remoteData = await remoteDataSource.fetchProducts(businessId);
       final remoteModels = remoteData.map((json) => ProductModel()
         ..id = json['id']
-        ..name = json['name']
+        ..businessId = businessId
+        ..name = json['name'] ?? ''
         ..description = json['description']
-        ..purchasePrice = (json['purchase_price'] as num).toDouble()
-        ..salePrice = (json['sale_price'] as num).toDouble()
-        ..stockQuantity = json['stock_quantity'] as int
+        ..sku = json['sku']
+        ..barcode = json['barcode']
+        ..purchasePrice = (json['purchase_price'] as num?)?.toDouble() ?? 0
+        ..salePrice = (json['sale_price'] as num?)?.toDouble() ?? 0
+        ..stockQuantity = (json['stock_quantity'] as num?)?.toInt() ?? 0
+        ..minStockThreshold = (json['min_stock_threshold'] as num?)?.toInt() ?? 5
+        ..unit = json['unit'] ?? 'ədəd'
         ..category = json['category']
-        ..createdAt = DateTime.parse(json['created_at'])
-        ..updatedAt = DateTime.parse(json['updated_at'])
+        ..createdAt = DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String())
+        ..updatedAt = DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String())
         ..syncStatus = SyncStatus.synced
       ).toList();
 
@@ -53,74 +58,64 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<void> addProduct(ProductEntity product) async {
-    final remoteId = const Uuid().v4();
-    final newProduct = ProductEntity(
-      id: remoteId,
-      name: product.name,
-      description: product.description,
-      purchasePrice: product.purchasePrice,
-      salePrice: product.salePrice,
-      stockQuantity: product.stockQuantity,
-      category: product.category,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      syncStatus: isOnline ? SyncStatus.synced : SyncStatus.pendingInsert,
-    );
+    final model = ProductModel.fromEntity(product)
+      ..id = product.id.isEmpty ? const Uuid().v4() : product.id
+      ..syncStatus = isOnline ? SyncStatus.synced : SyncStatus.pendingInsert;
 
-    await localDataSource.save(ProductModel.fromEntity(newProduct));
+    await localDataSource.save(model);
 
     if (isOnline) {
       try {
         await remoteDataSource.upsertProduct({
-          'id': newProduct.id,
-          'name': newProduct.name,
-          'description': newProduct.description,
-          'purchase_price': newProduct.purchasePrice,
-          'sale_price': newProduct.salePrice,
-          'stock_quantity': newProduct.stockQuantity,
-          'category': newProduct.category,
-          'created_at': newProduct.createdAt.toIso8601String(),
-          'updated_at': newProduct.updatedAt.toIso8601String(),
+          'id': model.id,
+          'business_id': model.businessId,
+          'name': model.name,
+          'description': model.description,
+          'sku': model.sku,
+          'barcode': model.barcode,
+          'purchase_price': model.purchasePrice,
+          'sale_price': model.salePrice,
+          'stock_quantity': model.stockQuantity,
+          'min_stock_threshold': model.minStockThreshold,
+          'unit': model.unit,
+          'category': model.category,
+          'created_at': model.createdAt.toIso8601String(),
+          'updated_at': model.updatedAt.toIso8601String(),
         });
       } catch (e) {
-        final pending = ProductModel.fromEntity(newProduct)..syncStatus = SyncStatus.pendingInsert;
-        await localDataSource.save(pending);
+        model.syncStatus = SyncStatus.pendingInsert;
+        await localDataSource.save(model);
       }
     }
   }
 
   @override
   Future<void> updateProduct(ProductEntity product) async {
-    final updated = ProductEntity(
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      purchasePrice: product.purchasePrice,
-      salePrice: product.salePrice,
-      stockQuantity: product.stockQuantity,
-      category: product.category,
-      createdAt: product.createdAt,
-      updatedAt: DateTime.now(),
-      syncStatus: isOnline ? SyncStatus.synced : SyncStatus.pendingUpdate,
-    );
+    final model = ProductModel.fromEntity(product)
+      ..updatedAt = DateTime.now()
+      ..syncStatus = isOnline ? SyncStatus.synced : SyncStatus.pendingUpdate;
 
-    await localDataSource.save(ProductModel.fromEntity(updated));
+    await localDataSource.save(model);
 
     if (isOnline) {
       try {
         await remoteDataSource.upsertProduct({
-          'id': updated.id,
-          'name': updated.name,
-          'description': updated.description,
-          'purchase_price': updated.purchasePrice,
-          'sale_price': updated.salePrice,
-          'stock_quantity': updated.stockQuantity,
-          'category': updated.category,
-          'updated_at': updated.updatedAt.toIso8601String(),
+          'id': model.id,
+          'name': model.name,
+          'description': model.description,
+          'sku': model.sku,
+          'barcode': model.barcode,
+          'purchase_price': model.purchasePrice,
+          'sale_price': model.salePrice,
+          'stock_quantity': model.stockQuantity,
+          'min_stock_threshold': model.minStockThreshold,
+          'unit': model.unit,
+          'category': model.category,
+          'updated_at': model.updatedAt.toIso8601String(),
         });
       } catch (e) {
-        final pending = ProductModel.fromEntity(updated)..syncStatus = SyncStatus.pendingUpdate;
-        await localDataSource.save(pending);
+        model.syncStatus = SyncStatus.pendingUpdate;
+        await localDataSource.save(model);
       }
     }
   }
@@ -131,38 +126,34 @@ class ProductRepositoryImpl implements ProductRepository {
     if (isOnline) {
       try {
         await remoteDataSource.deleteProduct(id);
-      } catch (e) {
-        // Handle sync delete later or mark as pending delete
-      }
+      } catch (e) {}
     }
   }
 
   @override
   Future<void> syncPendingProducts() async {
     if (!isOnline) return;
-
     final pending = await localDataSource.getPendingSync();
     for (final model in pending) {
       try {
-        final entity = model.toEntity();
         await remoteDataSource.upsertProduct({
-          'id': entity.id,
-          'name': entity.name,
-          'description': entity.description,
-          'purchase_price': entity.purchasePrice,
-          'sale_price': entity.salePrice,
-          'stock_quantity': entity.stockQuantity,
-          'category': entity.category,
-          'created_at': entity.createdAt.toIso8601String(),
-          'updated_at': entity.updatedAt.toIso8601String(),
+          'id': model.id,
+          'business_id': model.businessId,
+          'name': model.name,
+          'description': model.description,
+          'sku': model.sku,
+          'barcode': model.barcode,
+          'purchase_price': model.purchasePrice,
+          'sale_price': model.salePrice,
+          'stock_quantity': model.stockQuantity,
+          'min_stock_threshold': model.minStockThreshold,
+          'unit': model.unit,
+          'category': model.category,
+          'updated_at': model.updatedAt.toIso8601String(),
         });
-
-        final synced = ProductModel.fromEntity(entity)..syncStatus = SyncStatus.synced;
-        await localDataSource.save(synced);
-      } catch (e) {
-        // Continue
-      }
+        model.syncStatus = SyncStatus.synced;
+        await localDataSource.save(model);
+      } catch (e) {}
     }
   }
 }
-

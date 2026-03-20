@@ -7,6 +7,8 @@ import '../../data/data_sources/sale_remote_data_source.dart';
 import '../../data/repositories/sale_repository_impl.dart';
 import '../../domain/entities/sale_entity.dart';
 import '../../domain/repositories/sale_repository.dart';
+import '../../domain/repositories/product_repository.dart'; // Added this import
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final saleLocalDataSourceProvider = Provider<SaleLocalDataSource>((ref) {
   return SaleLocalDataSource(ref.watch(isarProvider));
@@ -28,12 +30,18 @@ final saleRepositoryProvider = Provider<SaleRepository>((ref) {
 class SaleListNotifier extends AsyncNotifier<List<SaleEntity>> {
   @override
   Future<List<SaleEntity>> build() async {
-    return ref.watch(saleRepositoryProvider).getSales();
+    final user = ref.watch(authProvider).user;
+    if (user == null) return [];
+    final businessId = user.businessId ?? user.id;
+    return ref.watch(saleRepositoryProvider).getSales(businessId);
   }
 
   Future<void> refresh() async {
+    final user = ref.read(authProvider).user;
+    if (user == null) return;
+    final businessId = user.businessId ?? user.id;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => ref.read(saleRepositoryProvider).getSales());
+    state = await AsyncValue.guard(() => ref.read(saleRepositoryProvider).getSales(businessId));
   }
 }
 

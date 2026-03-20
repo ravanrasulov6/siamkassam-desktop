@@ -6,7 +6,7 @@ class GetCustomersUseCase {
 
   GetCustomersUseCase(this.repository);
 
-  Future<List<CustomerEntity>> call() async {
-    return await repository.getCustomers();
+  Future<List<CustomerEntity>> call(String businessId) async {
+    return await repository.getCustomers(businessId);
   }
 }

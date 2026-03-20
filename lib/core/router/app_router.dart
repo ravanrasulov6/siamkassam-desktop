@@ -1,58 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/customers/presentation/screens/customer_list_screen.dart';
-import '../../features/customers/presentation/screens/add_customer_screen.dart';
 import '../../features/products/presentation/screens/product_list_screen.dart';
-import '../../features/products/presentation/screens/add_product_screen.dart';
-import '../../features/debts/presentation/screens/debt_list_screen.dart';
-import '../../features/debts/presentation/screens/add_debt_screen.dart';
+import '../../features/reports/presentation/screens/reports_screen.dart';
+import '../../features/expenses/presentation/screens/expenses_screen.dart';
+import '../../features/ai/presentation/screens/ai_screen.dart';
+import '../../features/messages/presentation/screens/messages_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/pos/presentation/screens/pos_screen.dart';
-import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/sales/presentation/screens/sales_list_screen.dart';
 
-
-
-
-
-
-final routerProvider = Provider<GoRouter>((ref) {
+final appRouterStateProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/',
     redirect: (context, state) {
-      final isLoggedIn = authState.user != null;
-      final isLoggingIn = state.matchedLocation == '/login';
-      final isRegistering = state.matchedLocation == '/register';
-      final isOnboarding = state.matchedLocation == '/onboarding';
+      if (authState.isLoading) return null;
+      
+      final bool isLoggedIn = authState.user != null;
+      final bool isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
-      if (!isLoggedIn && !isLoggingIn && !isRegistering) {
-        return '/login';
+      if (!isLoggedIn) {
+        return isLoggingIn ? null : '/login';
       }
 
-      if (isLoggedIn) {
-        final needsOnboarding = !authState.user!.onboardingCompleted;
-        
-        if (needsOnboarding && !isOnboarding) {
-          return '/onboarding';
-        }
-        
-        if (!needsOnboarding && (isLoggingIn || isRegistering || isOnboarding)) {
-          return '/';
-        }
+      if (isLoggedIn && isLoggingIn) {
+        return '/';
+      }
+
+      // Check for business context
+      if (isLoggedIn && authState.business == null && state.matchedLocation != '/onboarding') {
+        return '/onboarding';
       }
 
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const DashboardScreen(),
-      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
@@ -66,40 +56,41 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
-        path: '/customers',
-        builder: (context, state) => const CustomerListScreen(),
+        path: '/',
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
-        path: '/customers/add',
-        builder: (context, state) => const AddCustomerScreen(),
+        path: '/customers',
+        builder: (context, state) => const CustomerListScreen(),
       ),
       GoRoute(
         path: '/products',
         builder: (context, state) => const ProductListScreen(),
       ),
       GoRoute(
-        path: '/products/add',
-        builder: (context, state) => const AddProductScreen(),
-      ),
-      GoRoute(
-        path: '/debts',
-        builder: (context, state) => const DebtListScreen(),
-      ),
-      GoRoute(
-        path: '/debts/add',
-        builder: (context, state) => const AddDebtScreen(),
-      ),
-      GoRoute(
         path: '/pos',
         builder: (context, state) => const POSScreen(),
+      ),
+      GoRoute(
+        path: '/expenses',
+        builder: (context, state) => const ExpensesScreen(),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: '/ai',
+        builder: (context, state) => const AIScreen(),
+      ),
+      GoRoute(
+        path: '/messages',
+        builder: (context, state) => const MessagesScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
 });
-
-
-
-
-
-
-

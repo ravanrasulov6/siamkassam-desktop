@@ -7,6 +7,7 @@ import '../../data/data_sources/product_remote_data_source.dart';
 import '../../data/repositories/product_repository_impl.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/repositories/product_repository.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final productLocalDataSourceProvider = Provider<ProductLocalDataSource>((ref) {
   return ProductLocalDataSource(ref.watch(isarProvider));
@@ -28,12 +29,21 @@ final productRepositoryProvider = Provider<ProductRepository>((ref) {
 class ProductListNotifier extends AsyncNotifier<List<ProductEntity>> {
   @override
   Future<List<ProductEntity>> build() async {
-    return ref.watch(productRepositoryProvider).getProducts();
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    if (user == null) return [];
+    
+    final businessId = user.businessId ?? user.id;
+    return ref.watch(productRepositoryProvider).getProducts(businessId);
   }
 
   Future<void> refresh() async {
+    final user = ref.read(authProvider).user;
+    if (user == null) return;
+    
+    final businessId = user.businessId ?? user.id;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => ref.read(productRepositoryProvider).getProducts());
+    state = await AsyncValue.guard(() => ref.read(productRepositoryProvider).getProducts(businessId));
   }
 }
 

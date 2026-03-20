@@ -5,10 +5,11 @@ class CustomerRemoteDataSource {
 
   CustomerRemoteDataSource(this.supabase);
 
-  Future<List<Map<String, dynamic>>> fetchCustomers() async {
+  Future<List<Map<String, dynamic>>> fetchCustomers(String businessId) async {
     final response = await supabase
         .from('customers')
         .select()
+        .eq('business_id', businessId)
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }

@@ -18,24 +18,25 @@ class SaleRepositoryImpl implements SaleRepository {
   });
 
   @override
-  Future<List<SaleEntity>> getSales() async {
+  Future<List<SaleEntity>> getSales(String businessId) async {
     final localModels = await localDataSource.getAll();
     final entities = localModels.map((m) => m.toEntity()).toList();
 
     if (isOnline) {
-      _syncFromRemote();
+      _syncFromRemote(businessId);
     }
 
     return entities;
   }
 
-  Future<void> _syncFromRemote() async {
+  Future<void> _syncFromRemote(String businessId) async {
     try {
-      final remoteData = await remoteDataSource.fetchSales();
+      final remoteData = await remoteDataSource.fetchSales(businessId);
       final remoteModels = remoteData.map((json) {
-        final itemsJson = json['sale_items'] as List;
+        final itemsJson = json['sale_items'] as List? ?? [];
         return SaleModel()
           ..id = json['id']
+          ..businessId = businessId
           ..customerId = json['customer_id']
           ..customerName = json['customer_name']
           ..items = itemsJson.map((i) {
@@ -43,7 +44,7 @@ class SaleRepositoryImpl implements SaleRepository {
               ..id = i['id']
               ..saleId = json['id']
               ..productId = i['product_id']
-              ..productName = i['product_name']
+              ..productName = i['product_name'] ?? ''
               ..quantity = (i['quantity'] as num).toDouble()
               ..price = (i['price'] as num).toDouble()
               ..total = (i['total'] as num).toDouble();
@@ -52,8 +53,8 @@ class SaleRepositoryImpl implements SaleRepository {
           ..subtotal = (json['subtotal'] as num).toDouble()
           ..discount = (json['discount'] as num).toDouble()
           ..total = (json['total'] as num).toDouble()
-          ..paymentMethod = json['payment_method']
-          ..createdAt = DateTime.parse(json['created_at'])
+          ..paymentMethod = json['payment_method'] ?? 'cash'
+          ..createdAt = DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String())
           ..syncStatus = SyncStatus.synced;
       }).toList();
 
@@ -65,46 +66,30 @@ class SaleRepositoryImpl implements SaleRepository {
 
   @override
   Future<void> processSale(SaleEntity sale) async {
-    final saleId = const Uuid().v4();
-    final newSale = SaleEntity(
-      id: saleId,
-      customerId: sale.customerId,
-      customerName: sale.customerName,
-      items: sale.items.map((i) => SaleItemEntity(
-        id: const Uuid().v4(),
-        saleId: saleId,
-        productId: i.productId,
-        productName: i.productName,
-        quantity: i.quantity,
-        price: i.price,
-        total: i.total,
-      )).toList(),
-      subtotal: sale.subtotal,
-      discount: sale.discount,
-      total: sale.total,
-      paymentMethod: sale.paymentMethod,
-      createdAt: DateTime.now(),
-      syncStatus: isOnline ? SyncStatus.synced : SyncStatus.pendingInsert,
-    );
+    final saleId = sale.id.isEmpty ? const Uuid().v4() : sale.id;
+    final model = SaleModel.fromEntity(sale)
+      ..id = saleId
+      ..syncStatus = isOnline ? SyncStatus.synced : SyncStatus.pendingInsert;
 
-    await localDataSource.save(SaleModel.fromEntity(newSale));
+    await localDataSource.save(model);
 
     if (isOnline) {
       try {
         await remoteDataSource.createSale({
-          'id': newSale.id,
-          'customer_id': newSale.customerId,
-          'customer_name': newSale.customerName,
-          'subtotal': newSale.subtotal,
-          'discount': newSale.discount,
-          'total': newSale.total,
-          'payment_method': newSale.paymentMethod,
-          'created_at': newSale.createdAt.toIso8601String(),
+          'id': model.id,
+          'business_id': model.businessId,
+          'customer_id': model.customerId,
+          'customer_name': model.customerName,
+          'subtotal': model.subtotal,
+          'discount': model.discount,
+          'total': model.total,
+          'payment_method': model.paymentMethod,
+          'created_at': model.createdAt.toIso8601String(),
         });
 
-        final itemsData = newSale.items.map((i) => {
+        final itemsData = model.items.map((i) => {
           'id': i.id,
-          'sale_id': newSale.id,
+          'sale_id': model.id,
           'product_id': i.productId,
           'product_name': i.productName,
           'quantity': i.quantity,
@@ -114,8 +99,8 @@ class SaleRepositoryImpl implements SaleRepository {
 
         await remoteDataSource.createSaleItems(itemsData);
       } catch (e) {
-        final pending = SaleModel.fromEntity(newSale)..syncStatus = SyncStatus.pendingInsert;
-        await localDataSource.save(pending);
+        model.syncStatus = SyncStatus.pendingInsert;
+        await localDataSource.save(model);
       }
     }
   }
@@ -123,28 +108,24 @@ class SaleRepositoryImpl implements SaleRepository {
   @override
   Future<void> syncPendingSales() async {
     if (!isOnline) return;
-
     final pending = await localDataSource.getPendingSync();
     for (final model in pending) {
       try {
-        final entity = model.toEntity();
-        
-        // Push sale
         await remoteDataSource.createSale({
-          'id': entity.id,
-          'customer_id': entity.customerId,
-          'customer_name': entity.customerName,
-          'subtotal': entity.subtotal,
-          'discount': entity.discount,
-          'total': entity.total,
-          'payment_method': entity.paymentMethod,
-          'created_at': entity.createdAt.toIso8601String(),
+          'id': model.id,
+          'business_id': model.businessId,
+          'customer_id': model.customerId,
+          'customer_name': model.customerName,
+          'subtotal': model.subtotal,
+          'discount': model.discount,
+          'total': model.total,
+          'payment_method': model.paymentMethod,
+          'created_at': model.createdAt.toIso8601String(),
         });
 
-        // Push sale items
-        final itemsData = entity.items.map((i) => {
+        final itemsData = model.items.map((i) => {
           'id': i.id,
-          'sale_id': entity.id,
+          'sale_id': model.id,
           'product_id': i.productId,
           'product_name': i.productName,
           'quantity': i.quantity,
@@ -154,12 +135,9 @@ class SaleRepositoryImpl implements SaleRepository {
 
         await remoteDataSource.createSaleItems(itemsData);
 
-        final synced = SaleModel.fromEntity(entity)..syncStatus = SyncStatus.synced;
-        await localDataSource.save(synced);
-      } catch (e) {
-        // Continue
-      }
+        model.syncStatus = SyncStatus.synced;
+        await localDataSource.save(model);
+      } catch (e) {}
     }
   }
 }
-

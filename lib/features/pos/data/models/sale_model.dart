@@ -11,6 +11,9 @@ class SaleModel {
   @Index(unique: true, replace: true)
   late String id;
   
+  @Index()
+  late String businessId;
+  
   String? customerId;
   String? customerName;
   
@@ -28,6 +31,7 @@ class SaleModel {
   SaleEntity toEntity() {
     return SaleEntity(
       id: id,
+      businessId: businessId,
       customerId: customerId,
       customerName: customerName,
       items: items.map((i) => i.toEntity()).toList(),
@@ -40,9 +44,10 @@ class SaleModel {
     );
   }
 
-  static SaleModel fromEntity(SaleEntity entity) {
+  static SaleModel fromEntity(SaleEntity entity, {String? businessId}) {
     return SaleModel()
       ..id = entity.id
+      ..businessId = businessId ?? entity.businessId ?? ''
       ..customerId = entity.customerId
       ..customerName = entity.customerName
       ..items = entity.items.map((i) => SaleItemModel.fromEntity(i)).toList()

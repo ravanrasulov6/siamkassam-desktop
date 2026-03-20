@@ -101,6 +101,8 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
+    final String currentLocation = GoRouterState.of(context).matchedLocation;
+
     return Container(
       width: 260,
       decoration: BoxDecoration(
@@ -114,6 +116,7 @@ class DashboardScreen extends ConsumerWidget {
             'assets/images/logo.png',
             height: 60,
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(Icons.business_center, size: 48, color: AppColors.primary),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -121,16 +124,22 @@ class DashboardScreen extends ConsumerWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
           ),
           const SizedBox(height: 32),
-          _buildSidebarItem(Icons.dashboard_outlined, 'Panel', true, () => context.go('/')),
-          _buildSidebarItem(Icons.people_outline, 'Müştərilər', false, () => context.push('/customers')),
-          _buildSidebarItem(Icons.inventory_2_outlined, 'Məhsullar', false, () => context.push('/products')),
-          _buildSidebarItem(Icons.payments_outlined, 'Satış', false, () => context.push('/pos')),
-          _buildSidebarItem(Icons.money_off_outlined, 'Borclar', false, () => context.push('/debts')),
-
-
+          _buildSidebarItem(Icons.dashboard_outlined, 'Panel', currentLocation == '/', () => context.go('/')),
+          _buildSidebarItem(Icons.shopping_cart_outlined, 'POS', currentLocation == '/pos', () => context.go('/pos')),
+          _buildSidebarItem(Icons.list_alt_rounded, 'Satışlar', currentLocation == '/sales', () => context.go('/sales')),
+          _buildSidebarItem(Icons.inventory_2_outlined, 'Məhsullar', currentLocation == '/products', () => context.go('/products')),
+          _buildSidebarItem(Icons.people_alt_outlined, 'Müştərilər', currentLocation == '/customers', () => context.go('/customers')),
+          _buildSidebarItem(Icons.credit_card_outlined, 'Borclar', currentLocation == '/debts', () => context.go('/debts')),
+          _buildSidebarItem(Icons.payments_outlined, 'Xərclər', currentLocation == '/expenses', () => context.go('/expenses')),
+          _buildSidebarItem(Icons.bar_chart_outlined, 'Hesabatlar', currentLocation == '/reports', () => context.go('/reports')),
+          _buildSidebarItem(Icons.psychology_outlined, 'AI Mərkəzi', currentLocation == '/ai', () => context.go('/ai')),
+          _buildSidebarItem(Icons.mail_outline_rounded, 'Məktublarım', currentLocation == '/messages', () => context.go('/messages')),
+          _buildSidebarItem(Icons.settings_outlined, 'Tənzimləmələr', currentLocation == '/settings', () => context.go('/settings')),
 
           const Spacer(),
-          _buildSidebarItem(Icons.logout, 'Çıxış', false, () => ref.read(authProvider.notifier).logout()),
+          _buildSidebarItem(Icons.logout, 'Çıxış', false, () {
+            ref.read(authProvider.notifier).logout();
+          }),
           const SizedBox(height: 32),
         ],
       ),

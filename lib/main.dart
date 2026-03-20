@@ -51,7 +51,7 @@ class MainApp extends ConsumerWidget {
     // Initialize Sync Engine
     ref.read(syncEngineProvider);
 
-    final router = ref.watch(routerProvider);
+    final router = ref.watch(appRouterStateProvider);
 
     return GlobalErrorBoundary(
       child: MaterialApp.router(

@@ -5,10 +5,11 @@ class ProductRemoteDataSource {
 
   ProductRemoteDataSource(this.supabase);
 
-  Future<List<Map<String, dynamic>>> fetchProducts() async {
+  Future<List<Map<String, dynamic>>> fetchProducts(String businessId) async {
     final response = await supabase
         .from('products')
         .select()
+        .eq('business_id', businessId)
         .order('name', ascending: true);
     return List<Map<String, dynamic>>.from(response);
   }

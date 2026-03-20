@@ -4,7 +4,6 @@ import '../data_sources/customer_local_data_source.dart';
 import '../data_sources/customer_remote_data_source.dart';
 import '../models/customer_model.dart';
 import '../../../../core/network/sync_status.dart';
-import '../../../../core/network/connectivity_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class CustomerRepositoryImpl implements CustomerRepository {
@@ -19,94 +18,90 @@ class CustomerRepositoryImpl implements CustomerRepository {
   });
 
   @override
-  Future<List<CustomerEntity>> getCustomers() async {
-    // 1. Return local data immediately
+  Future<List<CustomerEntity>> getCustomers(String businessId) async {
     final localModels = await localDataSource.getAll();
     final entities = localModels.map((m) => m.toEntity()).toList();
 
-    // 2. If online, fetch remote in background and update local
     if (isOnline) {
-      _syncFromRemote();
+      _syncFromRemote(businessId);
     }
 
     return entities;
   }
 
-  Future<void> _syncFromRemote() async {
+  Future<void> _syncFromRemote(String businessId) async {
     try {
-      final remoteData = await remoteDataSource.fetchCustomers();
+      final remoteData = await remoteDataSource.fetchCustomers(businessId);
       final remoteModels = remoteData.map((json) => CustomerModel()
         ..id = json['id']
-        ..name = json['name']
+        ..businessId = businessId
+        ..firstName = json['first_name'] ?? ''
+        ..lastName = json['last_name'] ?? ''
         ..phone = json['phone']
-        ..createdAt = DateTime.parse(json['created_at'])
-        ..updatedAt = DateTime.parse(json['updated_at'])
+        ..email = json['email']
+        ..creditLimit = (json['credit_limit'] as num?)?.toDouble() ?? 0
+        ..totalDebt = (json['total_debt'] as num?)?.toDouble() ?? 0
+        ..createdAt = DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String())
+        ..updatedAt = DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String())
         ..syncStatus = SyncStatus.synced
       ).toList();
 
       await localDataSource.saveAll(remoteModels);
     } catch (e) {
-      // Log or handle error
+      // Handle error
     }
   }
 
   @override
   Future<void> addCustomer(CustomerEntity customer) async {
-    final remoteId = const Uuid().v4();
-    final newCustomer = CustomerEntity(
-      id: remoteId,
-      name: customer.name,
-      phone: customer.phone,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      syncStatus: isOnline ? SyncStatus.synced : SyncStatus.pendingInsert,
-    );
+    final newCustomer = CustomerModel.fromEntity(customer)
+      ..id = customer.id.isEmpty ? const Uuid().v4() : customer.id
+      ..syncStatus = isOnline ? SyncStatus.synced : SyncStatus.pendingInsert;
 
-    // Save locally first
-    await localDataSource.save(CustomerModel.fromEntity(newCustomer));
+    await localDataSource.save(newCustomer);
 
-    // Try to sync if online
     if (isOnline) {
       try {
         await remoteDataSource.upsertCustomer({
           'id': newCustomer.id,
-          'name': newCustomer.name,
+          'business_id': newCustomer.businessId,
+          'first_name': newCustomer.firstName,
+          'last_name': newCustomer.lastName,
           'phone': newCustomer.phone,
+          'email': newCustomer.email,
+          'credit_limit': newCustomer.creditLimit,
           'created_at': newCustomer.createdAt.toIso8601String(),
           'updated_at': newCustomer.updatedAt.toIso8601String(),
         });
       } catch (e) {
-        // If remote fails, mark as pending
-        final pending = CustomerModel.fromEntity(newCustomer)..syncStatus = SyncStatus.pendingInsert;
-        await localDataSource.save(pending);
+        newCustomer.syncStatus = SyncStatus.pendingInsert;
+        await localDataSource.save(newCustomer);
       }
     }
   }
 
   @override
   Future<void> updateCustomer(CustomerEntity customer) async {
-    final updated = CustomerEntity(
-      id: customer.id,
-      name: customer.name,
-      phone: customer.phone,
-      createdAt: customer.createdAt,
-      updatedAt: DateTime.now(),
-      syncStatus: isOnline ? SyncStatus.synced : SyncStatus.pendingUpdate,
-    );
+    final updated = CustomerModel.fromEntity(customer)
+      ..updatedAt = DateTime.now()
+      ..syncStatus = isOnline ? SyncStatus.synced : SyncStatus.pendingUpdate;
 
-    await localDataSource.save(CustomerModel.fromEntity(updated));
+    await localDataSource.save(updated);
 
     if (isOnline) {
       try {
         await remoteDataSource.upsertCustomer({
           'id': updated.id,
-          'name': updated.name,
+          'first_name': updated.firstName,
+          'last_name': updated.lastName,
           'phone': updated.phone,
+          'email': updated.email,
+          'credit_limit': updated.creditLimit,
           'updated_at': updated.updatedAt.toIso8601String(),
         });
       } catch (e) {
-        final pending = CustomerModel.fromEntity(updated)..syncStatus = SyncStatus.pendingUpdate;
-        await localDataSource.save(pending);
+        updated.syncStatus = SyncStatus.pendingUpdate;
+        await localDataSource.save(updated);
       }
     }
   }
@@ -114,26 +109,22 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<void> syncPendingCustomers() async {
     if (!isOnline) return;
-
     final pending = await localDataSource.getPendingSync();
     for (final model in pending) {
       try {
-        final entity = model.toEntity();
         await remoteDataSource.upsertCustomer({
-          'id': entity.id,
-          'name': entity.name,
-          'phone': entity.phone,
-          // 'email': entity.email, // Removed as CustomerEntity does not have this field
-          // 'address': entity.address, // Removed as CustomerEntity does not have this field
-          'created_at': entity.createdAt.toIso8601String(),
-          'updated_at': entity.updatedAt.toIso8601String(),
+          'id': model.id,
+          'business_id': model.businessId,
+          'first_name': model.firstName,
+          'last_name': model.lastName,
+          'phone': model.phone,
+          'email': model.email,
+          'credit_limit': model.creditLimit,
+          'updated_at': model.updatedAt.toIso8601String(),
         });
-        
-        final synced = CustomerModel.fromEntity(entity)..syncStatus = SyncStatus.synced;
-        await localDataSource.save(synced);
-      } catch (e) {
-        // Continue with others
-      }
+        model.syncStatus = SyncStatus.synced;
+        await localDataSource.save(model);
+      } catch (e) {}
     }
   }
 }

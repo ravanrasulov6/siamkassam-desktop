@@ -33,15 +33,22 @@ final getCustomersUseCaseProvider = Provider<GetCustomersUseCase>((ref) {
 class CustomerListNotifier extends AsyncNotifier<List<CustomerEntity>> {
   @override
   Future<List<CustomerEntity>> build() async {
-    return ref.watch(getCustomersUseCaseProvider).call();
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    if (user == null) return [];
+    
+    final businessId = user.businessId ?? user.id;
+    return ref.watch(getCustomersUseCaseProvider).call(businessId);
   }
 
   Future<void> refresh() async {
+    final user = ref.read(authProvider).user;
+    if (user == null) return;
+    
+    final businessId = user.businessId ?? user.id;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => ref.read(getCustomersUseCaseProvider).call());
+    state = await AsyncValue.guard(() => ref.read(getCustomersUseCaseProvider).call(businessId));
   }
-
-  // Add more methods like addCustomer, updateCustomer
 }
 
 final customerListProvider = AsyncNotifierProvider<CustomerListNotifier, List<CustomerEntity>>(() {
