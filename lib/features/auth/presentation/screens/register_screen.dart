@@ -24,107 +24,155 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE0E7FF), Color(0xFFF1F5F9), Color(0xFFE0E7FF)],
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9), Color(0xFFF8FAFC)],
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              padding: const EdgeInsets.all(24),
-              child: GlassCard(
-                padding: const EdgeInsets.all(32),
+          Center(
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420),
+                padding: const EdgeInsets.all(24),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Logo
+                    Hero(
+                      tag: 'logo',
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 60,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     const Text(
                       'Siam Kassam',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Yeni hesab yaradaraq işlərinizi asanlaşdırın.',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
-                    GlassInput(
-                      labelText: 'Tam Ad',
-                      controller: _nameController,
-                      prefixIcon: Icons.person_outline,
-                    ),
-                    const SizedBox(height: 16),
-                    GlassInput(
-                      labelText: 'E-poçt',
-                      controller: _emailController,
-                      prefixIcon: Icons.email_outlined,
-                    ),
-                    const SizedBox(height: 16),
-                    GlassInput(
-                      labelText: 'Şifrə',
-                      controller: _passwordController,
-                      obscureText: true,
-                      prefixIcon: Icons.lock_outline,
-                    ),
-                    const SizedBox(height: 24),
-                    if (authState.error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          authState.error!,
-                          style: const TextStyle(color: AppColors.error, fontSize: 13),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    GlassButton(
-                      onPressed: authState.isLoading
-                          ? () {}
-                          : () {
-                              final email = _emailController.text.trim();
-                              final password = _passwordController.text.trim();
-                              final name = _nameController.text.trim();
-                              
-                              if (email.isEmpty || password.isEmpty || name.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Zəhmət olmasa bütün xanaları doldurun')),
-                                );
-                                return;
-                              }
-                              
-                              ref.read(authProvider.notifier).register(
-                                    email,
-                                    password,
-                                    fullName: name,
-                                  );
-                            },
-                      child: authState.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                    GlassCard(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Qeydiyyat',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Başlamaq üçün aşağıdakı xanaları doldurun',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(height: 24),
+                          GlassInput(
+                            labelText: 'Tam Ad',
+                            controller: _nameController,
+                            prefixIcon: Icons.person_outline,
+                            hintText: 'Ad və Soyad',
+                          ),
+                          const SizedBox(height: 16),
+                          GlassInput(
+                            labelText: 'E-poçt',
+                            controller: _emailController,
+                            prefixIcon: Icons.email_outlined,
+                            hintText: 'nümunə@siam.az',
+                          ),
+                          const SizedBox(height: 16),
+                          GlassInput(
+                            labelText: 'Şifrə',
+                            controller: _passwordController,
+                            obscureText: true,
+                            prefixIcon: Icons.lock_outline,
+                            hintText: '••••••••',
+                          ),
+                          const SizedBox(height: 24),
+                          if (authState.error != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Text(
+                                authState.error!,
+                                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                                textAlign: TextAlign.center,
                               ),
-                            )
-                          : const Text('Qeydiyyatdan Keç'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text(
-                        'Artıq hesabınız var? Daxil olun',
-                        style: TextStyle(color: AppColors.primary),
+                            ),
+                          GlassButton(
+                            onPressed: authState.isLoading
+                                ? () {}
+                                : () {
+                                    final email = _emailController.text.trim();
+                                    final password = _passwordController.text.trim();
+                                    final name = _nameController.text.trim();
+                                    
+                                    if (email.isEmpty || password.isEmpty || name.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Zəhmət olmasa bütün xanaları doldurun')),
+                                      );
+                                      return;
+                                    }
+                                    
+                                    ref.read(authProvider.notifier).register(
+                                          email,
+                                          password,
+                                          fullName: name,
+                                        );
+                                  },
+                            child: authState.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Qeydiyyatı Tamamla →'),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Artıq hesabınız var?',
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                              ),
+                              TextButton(
+                                onPressed: () => context.go('/login'),
+                                child: const Text(
+                                  'Daxil olun',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -132,7 +180,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

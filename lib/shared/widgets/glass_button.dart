@@ -25,12 +25,12 @@ class GlassButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
-            color: color ?? AppColors.primary.withOpacity(0.8),
+            color: color ?? AppColors.primary.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(color: AppColors.glassBorder),
             boxShadow: [
               BoxShadow(
-                color: (color ?? AppColors.primary).withOpacity(0.2),
+                color: (color ?? AppColors.primary).withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

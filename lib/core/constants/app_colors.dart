@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color background = Color(0xFFF8F9FA);
+  static const Color background = Color(0xFFF8FAFC);
   static const Color surface = Colors.white;
-  static const Color primary = Color(0xFF2563EB);
+  static const Color primary = Color(0xFF0D9488); // Web App Teal
+  static const Color primaryHover = Color(0xFF0F766E);
   static const Color secondary = Color(0xFF64748B);
   
   // Glassmorphism specific
   static Color glassWhite = Colors.white.withOpacity(0.7);
-  static Color glassBorder = Colors.white.withOpacity(0.3);
+  static Color glassBorder = Colors.white.withOpacity(0.4);
   
-  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
   
-  static const Color error = Color(0xFFEF4444);
-  static const Color success = Color(0xFF22C55E);
+  static const Color error = Color(0xFFDC2626);
+  static const Color success = Color(0xFF059669);
+  static const Color info = Color(0xFF2563EB);
+  static const Color warning = Color(0xFFD97706);
 }

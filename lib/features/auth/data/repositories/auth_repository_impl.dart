@@ -12,14 +12,16 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserEntity> login({required String email, required String password}) async {
     final response = await remoteDataSource.login(email, password);
     if (response.user == null) throw Exception('Login failed');
-    return _mapToEntity(response.user!);
+    final profile = await remoteDataSource.getUserProfile(response.user!.id);
+    return _mapToEntity(response.user!, profile: profile);
   }
 
   @override
   Future<UserEntity> register({required String email, required String password, Map<String, dynamic>? data}) async {
     final response = await remoteDataSource.register(email, password, data: data);
     if (response.user == null) throw Exception('Registration failed');
-    return _mapToEntity(response.user!);
+    final profile = await remoteDataSource.getUserProfile(response.user!.id);
+    return _mapToEntity(response.user!, profile: profile);
   }
 
   @override
@@ -40,27 +42,32 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserEntity?> getCurrentUser() async {
-
     final user = remoteDataSource.getCurrentUser();
-    return user != null ? _mapToEntity(user) : null;
+    if (user == null) return null;
+    final profile = await remoteDataSource.getUserProfile(user.id);
+    return _mapToEntity(user, profile: profile);
   }
 
   @override
   Stream<UserEntity?> authStateChanges() {
     // Mapping Supabase auth state to our Entity
-    return remoteDataSource.supabase.auth.onAuthStateChange.map((event) {
+    return remoteDataSource.supabase.auth.onAuthStateChange.asyncMap((event) async {
       final user = event.session?.user;
-      return user != null ? _mapToEntity(user) : null;
+      if (user == null) return null;
+      final profile = await remoteDataSource.getUserProfile(user.id);
+      return _mapToEntity(user, profile: profile);
     });
   }
 
-  UserEntity _mapToEntity(supabase.User user) {
+  UserEntity _mapToEntity(supabase.User user, {Map<String, dynamic>? profile}) {
     return UserEntity(
       id: user.id,
       email: user.email ?? '',
-      fullName: user.userMetadata?['full_name'],
-      businessId: user.userMetadata?['business_id'],
-      onboardingCompleted: user.userMetadata?['onboarding_completed'] ?? false,
+      fullName: profile?['first_name'] != null 
+          ? '${profile!['first_name']} ${profile['last_name'] ?? ''}'
+          : user.userMetadata?['full_name'],
+      businessId: profile?['business_id'] ?? user.userMetadata?['business_id'],
+      onboardingCompleted: profile?['onboarding_completed'] ?? user.userMetadata?['onboarding_completed'] ?? false,
     );
   }
 }

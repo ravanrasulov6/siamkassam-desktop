@@ -20,10 +20,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _storeNameController = TextEditingController();
+  final _bizNameController = TextEditingController();
   final _employeeCountController = TextEditingController(text: '1');
   String? _selectedCategory;
-  String _selectedSize = 'small';
 
   final List<String> _categories = [
     'Telefon mağazası',
@@ -53,14 +52,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await ref.read(authProvider.notifier).updateProfile({
         'first_name': _firstNameController.text.trim(),
         'last_name': _lastNameController.text.trim(),
-        'biz_name': _storeNameController.text.trim(),
+        'biz_name': _bizNameController.text.trim(),
         'biz_category': _selectedCategory,
-        'biz_size': _selectedSize,
         'biz_employee_count': int.tryParse(_employeeCountController.text) ?? 1,
         'onboarding_completed': true,
+        'updated_at': DateTime.now().toIso8601String(),
       });
+      if (!mounted) return;
       _nextStep(); // Move to success step
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Xəta baş verdi: $e')),
       );
@@ -70,31 +71,51 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE0E7FF), Color(0xFFF1F5F9), Color(0xFFE0E7FF)],
-          ),
-        ),
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_currentStep > 1 && _currentStep < 5) _buildProgressBar(),
-                const SizedBox(height: 24),
-                GlassCard(
-                  padding: const EdgeInsets.all(32),
-                  child: _buildStepContent(),
-                ),
-              ],
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9), Color(0xFFF8FAFC)],
+              ),
             ),
           ),
-        ),
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 500),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_currentStep > 1 && _currentStep < 5) ...[
+                    _buildProgressBar(),
+                    const SizedBox(height: 32),
+                  ],
+                  Hero(
+                    tag: 'logo',
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 60,
+                      filterQuality: FilterQuality.high,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  GlassCard(
+                    padding: const EdgeInsets.all(40),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: _buildStepContent(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -105,12 +126,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         final stepNum = index + 2;
         final isActive = stepNum <= _currentStep;
         return Expanded(
-          child: Container(
-            height: 4,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: 6,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary : Colors.grey.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(2),
+              color: isActive ? AppColors.primary : AppColors.textTertiary.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(3),
+              boxShadow: isActive ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ] : null,
             ),
           ),
         );
@@ -125,7 +154,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       case 2:
         return _buildPersonalInfoStep();
       case 3:
-        return _buildStoreInfoStep();
+        return _buildBusinessInfoStep();
       case 4:
         return _buildScaleStep();
       case 5:
@@ -139,22 +168,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.business_center_outlined, size: 64, color: AppColors.primary),
-        const SizedBox(height: 24),
         const Text(
-          'Siam Kassam',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
+          'Siam Kassam-a Xoş Gəlmisiniz',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+            letterSpacing: -0.5,
+          ),
         ),
         const SizedBox(height: 16),
         const Text(
-          'Biznesinizi idarə edin. Sadə. Sürətli. Güclü.',
+          'Biznesinizi rəqəmsallaşdırmaq üçün bir neçə addım qalıb. Başlayaq?',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         GlassButton(
           onPressed: _nextStep,
-          child: const Text('Başla →', style: TextStyle(fontSize: 18)),
+          child: const Text('Bəli, Başlayaq! →', style: TextStyle(fontSize: 18)),
         ),
       ],
     );
@@ -165,38 +198,86 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Şəxsi Məlumatlar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(
+          'Şəxsi Məlumatlar',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
         const SizedBox(height: 8),
-        const Text('Sizi daha yaxşı tanıyaq', style: TextStyle(color: AppColors.textSecondary)),
-        const SizedBox(height: 24),
-        GlassInput(labelText: 'Ad', controller: _firstNameController),
-        const SizedBox(height: 16),
-        GlassInput(labelText: 'Soyad', controller: _lastNameController),
+        const Text(
+          'Sizi necə çağıraq?',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
         const SizedBox(height: 32),
+        GlassInput(
+          labelText: 'Adınız',
+          controller: _firstNameController,
+          prefixIcon: Icons.person_outline,
+          hintText: 'Məs: Əli',
+        ),
+        const SizedBox(height: 16),
+        GlassInput(
+          labelText: 'Soyadınız',
+          controller: _lastNameController,
+          prefixIcon: Icons.person_outline,
+          hintText: 'Məs: Məmmədov',
+        ),
+        const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(onPressed: _prevStep, child: const Text('Geri')),
-            GlassButton(onPressed: _nextStep, child: const Text('Davam et →')),
+            Expanded(
+              child: TextButton(
+                onPressed: _prevStep,
+                child: const Text('Geri', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: GlassButton(
+                onPressed: () {
+                  if (_firstNameController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Zəhmət olmasa adınızı daxil edin')),
+                    );
+                    return;
+                  }
+                  _nextStep();
+                },
+                child: const Text('Daxil Et →'),
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStoreInfoStep() {
+  Widget _buildBusinessInfoStep() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Mağaza Haqqında', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 24),
-        GlassInput(labelText: 'Mağaza adı', controller: _storeNameController),
+        const Text(
+          'Biznes Məlumatları',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Şirkətinizin və ya mağazanızın adı nədir?',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+        const SizedBox(height: 32),
+        GlassInput(
+          labelText: 'Biznes Adı',
+          controller: _bizNameController,
+          prefixIcon: Icons.business_outlined,
+          hintText: 'Məs: Siam Electronics',
+        ),
         const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.glassWhite,
+            color: Colors.white.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.glassBorder),
           ),
@@ -205,17 +286,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               hint: const Text('Kateqoriya seçin'),
               value: _selectedCategory,
               isExpanded: true,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+              dropdownColor: Colors.white,
+              borderRadius: BorderRadius.circular(12),
               items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (val) => setState(() => _selectedCategory = val),
             ),
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(onPressed: _prevStep, child: const Text('Geri')),
-            GlassButton(onPressed: _nextStep, child: const Text('Davam et →')),
+            Expanded(
+              child: TextButton(
+                onPressed: _prevStep,
+                child: const Text('Geri', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: GlassButton(
+                onPressed: () {
+                  if (_bizNameController.text.trim().isEmpty || _selectedCategory == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Zəhmət olmasa bütün sahələri doldurun')),
+                    );
+                    return;
+                  }
+                  _nextStep();
+                },
+                child: const Text('Davam Et →'),
+              ),
+            ),
           ],
         ),
       ],
@@ -228,19 +331,41 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Biznes Həcmi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 24),
-        GlassInput(labelText: 'İşçi sayı', controller: _employeeCountController, keyboardType: TextInputType.number),
+        const Text(
+          'Biznes Həcmi',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Şirkətinizdə təxminən neçə nəfər çalışır?',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
         const SizedBox(height: 32),
+        GlassInput(
+          labelText: 'İşçi sayı',
+          controller: _employeeCountController,
+          prefixIcon: Icons.people_outline,
+          keyboardType: TextInputType.number,
+          hintText: 'Məs: 5',
+        ),
+        const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(onPressed: _prevStep, child: const Text('Geri')),
-            GlassButton(
-              onPressed: authState.isLoading ? () {} : _completeOnboarding,
-              child: authState.isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Tamamla ✓'),
+            Expanded(
+              child: TextButton(
+                onPressed: _prevStep,
+                child: const Text('Geri', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: GlassButton(
+                onPressed: authState.isLoading ? null : _completeOnboarding,
+                child: authState.isLoading 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Quraşdırmanı Bitir ✓'),
+              ),
             ),
           ],
         ),
@@ -252,15 +377,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle_outline, size: 80, color: AppColors.success),
-        const SizedBox(height: 24),
-        const Text('Hazırsınız! 🎉', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 16),
-        const Text('Biznesiniz uğurla qeydiyyatdan keçdi', textAlign: TextAlign.center),
+        const Icon(Icons.stars_rounded, size: 80, color: AppColors.primary),
         const SizedBox(height: 32),
+        const Text(
+          'Hər Şey Hazırdır! 🎉',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Siam Kassam ailəsinə xoş gəldiniz. İndi biznesinizi idarə etməyə başlaya bilərsiniz.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 48),
         GlassButton(
           onPressed: () => context.go('/'),
-          child: const Text('Dashboard-a keç →'),
+          child: const Text('İş masasına keç →', style: TextStyle(fontSize: 18)),
         ),
       ],
     );

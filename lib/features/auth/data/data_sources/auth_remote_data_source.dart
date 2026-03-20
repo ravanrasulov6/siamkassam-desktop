@@ -20,4 +20,13 @@ class AuthRemoteDataSource {
   User? getCurrentUser() {
     return supabase.auth.currentUser;
   }
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    final response = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+    return response;
+  }
 }
