@@ -2,6 +2,7 @@ import '../../../../core/network/sync_status.dart';
 
 class SaleItemEntity {
   final String id;
+  final String saleId;
   final String productId;
   final String productName;
   final double quantity;
@@ -10,12 +11,33 @@ class SaleItemEntity {
 
    SaleItemEntity({
     required this.id,
+    required this.saleId,
     required this.productId,
     required this.productName,
     required this.quantity,
     required this.price,
     required this.total,
   });
+
+  SaleItemEntity copyWith({
+    String? id,
+    String? saleId,
+    String? productId,
+    String? productName,
+    double? quantity,
+    double? price,
+    double? total,
+  }) {
+    return SaleItemEntity(
+      id: id ?? this.id,
+      saleId: saleId ?? this.saleId,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+      total: total ?? this.total,
+    );
+  }
 }
 
 class SaleEntity {

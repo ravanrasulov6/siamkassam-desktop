@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
 class GlassButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget child;
   final Color? color;
   final double borderRadius;
@@ -17,6 +17,8 @@ class GlassButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = onPressed == null;
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -25,16 +27,18 @@ class GlassButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
-            color: color ?? AppColors.primary.withValues(alpha: 0.8),
+            color: isDisabled 
+                ? AppColors.textTertiary.withValues(alpha: 0.3)
+                : (color ?? AppColors.primary.withValues(alpha: 0.8)),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(color: AppColors.glassBorder),
-            boxShadow: [
+            boxShadow: !isDisabled ? [
               BoxShadow(
                 color: (color ?? AppColors.primary).withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
-            ],
+            ] : null,
           ),
           child: DefaultTextStyle.merge(
             style: const TextStyle(

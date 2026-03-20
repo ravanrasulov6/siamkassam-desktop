@@ -7,6 +7,7 @@ class GlassInput extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final IconData? prefixIcon;
+  final String? hintText;
 
   const GlassInput({
     super.key,
@@ -15,6 +16,7 @@ class GlassInput extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.prefixIcon,
+    this.hintText,
   });
 
   @override
@@ -33,6 +35,8 @@ class GlassInput extends StatelessWidget {
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: const TextStyle(color: AppColors.textSecondary),
+          hintText: hintText,
+          hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           prefixIcon: prefixIcon != null 

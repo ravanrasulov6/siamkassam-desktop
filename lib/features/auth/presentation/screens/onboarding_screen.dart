@@ -361,7 +361,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Expanded(
               flex: 2,
               child: GlassButton(
-                onPressed: authState.isLoading ? null : _completeOnboarding,
+                onPressed: authState.isLoading ? null : () => _completeOnboarding(),
                 child: authState.isLoading 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Text('Quraşdırmanı Bitir ✓'),

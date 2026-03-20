@@ -66,6 +66,9 @@ class AuthRepositoryImpl implements AuthRepository {
       fullName: profile?['first_name'] != null 
           ? '${profile!['first_name']} ${profile['last_name'] ?? ''}'
           : user.userMetadata?['full_name'],
+      bizName: profile?['biz_name'],
+      bizCategory: profile?['biz_category'],
+      bizEmployeeCount: profile?['biz_employee_count'],
       businessId: profile?['business_id'] ?? user.userMetadata?['business_id'],
       onboardingCompleted: profile?['onboarding_completed'] ?? user.userMetadata?['onboarding_completed'] ?? false,
     );
