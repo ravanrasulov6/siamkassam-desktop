@@ -69,35 +69,34 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
         child: Align(
           alignment: Alignment.topCenter,
           child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: GlassCard(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    GlassInput(labelText: 'Məhsul adı', controller: _nameController),
-                    const SizedBox(height: 16),
-                    GlassInput(labelText: 'Təsvir', controller: _descriptionController),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: GlassInput(labelText: 'Alış qiyməti', controller: _purchasePriceController, keyboardType: TextInputType.number)),
-                        const SizedBox(width: 16),
-                        Expanded(child: GlassInput(labelText: 'Satış qiyməti', controller: _salePriceController, keyboardType: TextInputType.number)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    GlassInput(labelText: 'Stok sayı', controller: _stockController, keyboardType: TextInputType.number),
-                    const SizedBox(height: 32),
-                    GlassButton(
-                      onPressed: _isLoading ? () {} : _save,
-                      child: _isLoading 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Yadda Saxla'),
-                    ),
-                  ],
-                ),
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: GlassCard(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GlassInput(labelText: 'Məhsul adı', controller: _nameController),
+                  const SizedBox(height: 16),
+                  GlassInput(labelText: 'Təsvir', controller: _descriptionController),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: GlassInput(labelText: 'Alış qiyməti', controller: _purchasePriceController, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 16),
+                      Expanded(child: GlassInput(labelText: 'Satış qiyməti', controller: _salePriceController, keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  GlassInput(labelText: 'Stok sayı', controller: _stockController, keyboardType: TextInputType.number),
+                  const SizedBox(height: 32),
+                  GlassButton(
+                    onPressed: _isLoading ? () {} : _save,
+                    child: _isLoading 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Yadda Saxla'),
+                  ),
+                ],
               ),
             ),
           ),

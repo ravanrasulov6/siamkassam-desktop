@@ -26,9 +26,14 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
     setState(() => _isLoading = true);
     try {
       final repository = ref.read(customerRepositoryProvider);
+      final nameParts = _nameController.text.trim().split(' ');
+      final firstName = nameParts.first;
+      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
       await repository.addCustomer(CustomerEntity(
         id: '', // Generated in repository
-        name: _nameController.text.trim(),
+        firstName: firstName,
+        lastName: lastName,
         phone: _phoneController.text.trim(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -64,34 +69,33 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
         child: Align(
           alignment: Alignment.topCenter,
           child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: GlassCard(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    GlassInput(
-                      labelText: 'Ad Soyad',
-                      controller: _nameController,
-                      prefixIcon: Icons.person_outline,
-                    ),
-                    const SizedBox(height: 16),
-                    GlassInput(
-                      labelText: 'Telefon',
-                      controller: _phoneController,
-                      prefixIcon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 32),
-                    GlassButton(
-                      onPressed: _isLoading ? () {} : _save,
-                      child: _isLoading 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Yadda Saxla'),
-                    ),
-                  ],
-                ),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: GlassCard(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GlassInput(
+                    labelText: 'Ad Soyad',
+                    controller: _nameController,
+                    prefixIcon: Icons.person_outline,
+                  ),
+                  const SizedBox(height: 16),
+                  GlassInput(
+                    labelText: 'Telefon',
+                    controller: _phoneController,
+                    prefixIcon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 32),
+                  GlassButton(
+                    onPressed: _isLoading ? () {} : _save,
+                    child: _isLoading 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Yadda Saxla'),
+                  ),
+                ],
               ),
             ),
           ),
