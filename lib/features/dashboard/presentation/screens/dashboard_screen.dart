@@ -12,7 +12,10 @@ import 'package:intl/intl.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
-
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
     final customers = ref.watch(customerListProvider);
     final products = ref.watch(productListProvider);
     final sales = ref.watch(saleListProvider);
@@ -124,8 +127,14 @@ class DashboardScreen extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(padding: EdgeInsets.all(32), child: CircularProgressIndicator()),
-                error: (err, _) => Center(padding: const EdgeInsets.all(32), child: Text('Xəta: $err')),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, _) => Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(child: Text('Xəta: $err')),
+                ),
               ),
             ),
           ],

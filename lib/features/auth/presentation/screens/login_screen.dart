@@ -193,10 +193,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
   Widget _buildTabItem(String label, String method, IconData icon) {
     final isActive = _loginMethod == method;
     return Expanded(
