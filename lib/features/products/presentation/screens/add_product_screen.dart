@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/glass_input.dart';
 import '../../../../shared/widgets/glass_button.dart';
+import '../../../../core/constants/app_colors.dart';
 
 import '../providers/product_provider.dart';
 import '../../domain/entities/product_entity.dart';
@@ -55,11 +56,11 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yeni Məhsul', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        title: Text('Yeni Məhsul', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
           onPressed: () => context.pop(),
         ),
       ),
