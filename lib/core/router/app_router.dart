@@ -14,23 +14,33 @@ import '../../features/ai/presentation/screens/ai_screen.dart';
 import '../../features/messages/presentation/screens/messages_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/pos/presentation/screens/pos_screen.dart';
-import '../../features/sales/presentation/screens/sales_list_screen.dart';
-import '../../features/dashboard/presentation/screens/main_layout.dart';
-import '../../features/customers/presentation/screens/add_customer_screen.dart';
-import '../../features/products/presentation/screens/add_product_screen.dart';
+import '../../features/debts/presentation/screens/debt_list_screen.dart';
+import '../../features/debts/presentation/screens/add_debt_screen.dart';
 
 // Key for the root navigator
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 // Key for the shell navigator (for the MainLayout)
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-final appRouterStateProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+/// A notifier that triggers a refresh of the GoRouter when the auth state changes.
+class RouterRefreshNotifier extends ChangeNotifier {
+  RouterRefreshNotifier(Ref ref) {
+    ref.listen(authProvider, (_, __) => notifyListeners());
+  }
+}
 
+final routerRefreshProvider = Provider((ref) => RouterRefreshNotifier(ref));
+
+final appRouterStateProvider = Provider<GoRouter>((ref) {
+  final refreshNotifier = ref.watch(routerRefreshProvider);
+  
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
+    refreshListenable: refreshNotifier,
     initialLocation: '/',
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      
       if (authState.isLoading) return null;
       
       final bool isLoggedIn = authState.user != null;
@@ -101,6 +111,16 @@ final appRouterStateProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sales',
             pageBuilder: (context, state) => const NoTransitionPage(child: SalesListScreen()),
+          ),
+          GoRoute(
+            path: '/debts',
+            pageBuilder: (context, state) => const NoTransitionPage(child: DebtListScreen()),
+            routes: [
+              GoRoute(
+                path: 'add',
+                builder: (context, state) => const AddDebtScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/expenses',

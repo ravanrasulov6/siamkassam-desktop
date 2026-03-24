@@ -8,8 +8,8 @@ class AppColors {
   static const Color secondary = Color(0xFF64748B);
   
   // Glassmorphism specific
-  static Color glassWhite = Colors.white.withOpacity(0.7);
-  static Color glassBorder = Colors.white.withOpacity(0.4);
+  static const Color glassWhite = Color(0xB3FFFFFF); // 0.7 opacity white
+  static const Color glassBorder = Color(0x66FFFFFF); // 0.4 opacity white
   
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF64748B);

@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/widgets/glass_card.dart';
-import '../../../../shared/widgets/kpi_card.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../providers/sale_provider.dart';
+import '../../domain/entities/sale_entity.dart';
+import 'package:intl/intl.dart';
 
 class SalesListScreen extends ConsumerStatefulWidget {
   const SalesListScreen({super.key});
@@ -14,35 +12,10 @@ class SalesListScreen extends ConsumerStatefulWidget {
 class _SalesListScreenState extends ConsumerState<SalesListScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _sales = [
-    {
-      'id': 'S-1001',
-      'customer': 'Rəvan Rəsulov',
-      'amount': 1250.50,
-      'method': 'Nəğd',
-      'status': 'Completed',
-      'date': DateTime.now().subtract(const Duration(hours: 2)),
-    },
-    {
-      'id': 'S-1002',
-      'customer': 'Anonim',
-      'amount': 45.00,
-      'method': 'Kart',
-      'status': 'Completed',
-      'date': DateTime.now().subtract(const Duration(hours: 5)),
-    },
-    {
-      'id': 'S-1003',
-      'customer': 'Siam Kassam',
-      'amount': 320.00,
-      'method': 'Nisyə',
-      'status': 'Completed',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final salesAsync = ref.watch(saleListProvider);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -54,17 +27,29 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 32),
-              _buildKPIs(),
-              const SizedBox(height: 32),
-              _buildFilters(),
-              const SizedBox(height: 24),
-              Expanded(child: _buildSalesTable()),
-            ],
+          child: salesAsync.when(
+            data: (sales) {
+              final filteredSales = sales.where((sale) {
+                final query = _searchController.text.toLowerCase();
+                return sale.id.toLowerCase().contains(query) ||
+                    (sale.customerName?.toLowerCase().contains(query) ?? false);
+              }).toList();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 32),
+                  _buildKPIs(sales),
+                  const SizedBox(height: 32),
+                  _buildFilters(),
+                  const SizedBox(height: 24),
+                  Expanded(child: _buildSalesTable(filteredSales)),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Xəta: $err')),
           ),
         ),
       ),
@@ -102,45 +87,54 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
     );
   }
 
-  Widget _buildKPIs() {
-    return const Row(
+  Widget _buildKPIs(List<SaleEntity> sales) {
+    final now = DateTime.now();
+    final todaySales = sales.where((s) => s.createdAt.day == now.day && s.createdAt.month == now.month && s.createdAt.year == now.year);
+    final todayTotal = todaySales.fold(0.0, (sum, s) => sum + s.total);
+    
+    final sevenDaysAgo = now.subtract(const Duration(days: 7));
+    final weeklySales = sales.where((s) => s.createdAt.isAfter(sevenDaysAgo));
+    final weeklyTotal = weeklySales.fold(0.0, (sum, s) => sum + s.total);
+    
+    final avgCheck = sales.isEmpty ? 0.0 : sales.fold(0.0, (sum, s) => sum + s.total) / sales.length;
+    final grandTotal = sales.fold(0.0, (sum, s) => sum + s.total);
+
+    return Row(
       children: [
         Expanded(
           child: KPICard(
             title: 'Bugünkü Satış',
-            value: '₼ 1,295.50',
-            subtitle: 'Bugün cəmi 12 satış',
+            value: '₼ ${todayTotal.toStringAsFixed(2)}',
+            subtitle: 'Bugün cəmi ${todaySales.length} satış',
             icon: Icons.calendar_today_rounded,
             color: Colors.blue,
-            trend: 12.5,
           ),
         ),
-        SizedBox(width: 24),
+        const SizedBox(width: 24),
         Expanded(
           child: KPICard(
             title: 'Həftəlik Satış',
-            value: '₼ 8,450.00',
+            value: '₼ ${weeklyTotal.toStringAsFixed(2)}',
             subtitle: 'Son 7 gündə',
             icon: Icons.show_chart_rounded,
             color: Colors.indigo,
-            trend: 8.2,
           ),
         ),
-        SizedBox(width: 24),
+        const SizedBox(width: 24),
         Expanded(
           child: KPICard(
             title: 'Orta Çek',
-            value: '₼ 48.20',
+            value: '₼ ${avgCheck.toStringAsFixed(2)}',
             subtitle: 'Hər satış üzrə orta',
             icon: Icons.receipt_long_rounded,
             color: Colors.teal,
           ),
         ),
-        SizedBox(width: 24),
+        const SizedBox(width: 24),
         Expanded(
           child: KPICard(
             title: 'Cəmi Satış',
-            value: '₼ 42,120',
+            value: '₼ ${NumberFormat('#,###').format(grandTotal)}',
             subtitle: 'Bütün dövrlər üçün',
             icon: Icons.account_balance_wallet_rounded,
             color: Colors.amber,
@@ -163,6 +157,7 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
             ),
             child: TextField(
               controller: _searchController,
+              onChanged: (val) => setState(() {}),
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search, size: 20, color: AppColors.textSecondary),
                 hintText: 'Satış ID və ya müştəri axtar...',
@@ -198,13 +193,18 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
     );
   }
 
-  Widget _buildSalesTable() {
+  Widget _buildSalesTable(List<SaleEntity> sales) {
     return GlassCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: SingleChildScrollView(
-          child: DataTable(
+          child: sales.isEmpty 
+          ? const Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: Text('Hələ ki satış yoxdur')),
+            )
+          : DataTable(
             headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
             horizontalMargin: 24,
             columnSpacing: 40,
@@ -216,13 +216,13 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
               DataColumn(label: Text('TARiX', style: TextStyle(fontWeight: FontWeight.bold))),
               DataColumn(label: Text('ƏMƏLLƏR', style: TextStyle(fontWeight: FontWeight.bold))),
             ],
-            rows: _sales.map((sale) {
+            rows: sales.map((sale) {
               return DataRow(cells: [
-                DataCell(Text(sale['id'] as String, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary))),
-                DataCell(Text(sale['customer'] as String)),
-                DataCell(Text('₼${(sale['amount'] as double).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(_buildStatusBadge(sale['method'] as String)),
-                DataCell(Text('${(sale['date'] as DateTime).day}.${(sale['date'] as DateTime).month}.${(sale['date'] as DateTime).year}')),
+                DataCell(Text(sale.id.substring(0, 8).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary))),
+                DataCell(Text(sale.customerName ?? 'Anonim')),
+                DataCell(Text('₼${sale.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))),
+                DataCell(_buildStatusBadge(sale.paymentMethod == 'cash' ? 'Nəğd' : (sale.paymentMethod == 'card' ? 'Kart' : 'Nisyə'))),
+                DataCell(Text(DateFormat('dd.MM.yyyy HH:mm').format(sale.createdAt))),
                 DataCell(Row(
                   children: [
                     IconButton(onPressed: () {}, icon: const Icon(Icons.print_outlined, size: 20, color: AppColors.textSecondary)),

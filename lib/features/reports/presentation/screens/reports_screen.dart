@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/widgets/glass_card.dart';
-import '../../../../shared/widgets/kpi_card.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../pos/presentation/providers/sale_provider.dart';
+import '../../../expenses/presentation/providers/expense_provider.dart';
+import '../../../debts/presentation/providers/debt_provider.dart';
+import 'package:intl/intl.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -20,6 +19,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final salesAsync = ref.watch(saleListProvider);
+    final expensesAsync = ref.watch(expenseListProvider);
+    final debtsAsync = ref.watch(debtListProvider);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -31,18 +34,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 32),
-              _buildTabs(),
-              const SizedBox(height: 32),
-              Expanded(
-                child: _buildTabContent(),
-              ),
-            ],
-          ),
+          child: (salesAsync.isLoading || expensesAsync.isLoading || debtsAsync.isLoading)
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 32),
+                _buildTabs(),
+                const SizedBox(height: 32),
+                Expanded(
+                  child: _buildTabContent(
+                    sales: salesAsync.value ?? [],
+                    expenses: expensesAsync.value ?? [],
+                    debts: debtsAsync.value ?? [],
+                  ),
+                ),
+              ],
+            ),
         ),
       ),
     );
@@ -158,22 +167,30 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent({required List<dynamic> sales, required List<dynamic> expenses, required List<dynamic> debts}) {
+    // Filter by date range
+    final filteredSales = sales.where((s) => s.createdAt.isAfter(_dateRange.start) && s.createdAt.isBefore(_dateRange.end.add(const Duration(days: 1)))).toList();
+    final filteredExpenses = expenses.where((e) => e.createdAt.isAfter(_dateRange.start) && e.createdAt.isBefore(_dateRange.end.add(const Duration(days: 1)))).toList();
+
     switch (_activeTab) {
       case 'general':
-        return _buildGeneralTab();
+        return _buildGeneralTab(filteredSales, filteredExpenses);
       case 'sales':
-        return _buildSalesTab();
+        return _buildSalesTab(filteredSales);
       case 'expenses':
-        return _buildExpensesTab();
+        return _buildExpensesTab(filteredExpenses);
       case 'debts':
-        return _buildDebtsTab();
+        return _buildDebtsTab(debts);
       default:
         return const Center(child: Text('Tezliklə...'));
     }
   }
 
-  Widget _buildGeneralTab() {
+  Widget _buildGeneralTab(List<dynamic> sales, List<dynamic> expenses) {
+    final totalSales = sales.fold(0.0, (sum, s) => sum + s.total);
+    final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
+    final netProfit = totalSales - totalExpenses;
+
     return Column(
       children: [
         Row(
@@ -181,7 +198,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             Expanded(
               child: KPICard(
                 title: 'ÜMUMİ SATIŞLAR',
-                value: '12,450 AZN',
+                value: '${NumberFormat('#,###.00').format(totalSales)} AZN',
                 icon: Icons.trending_up_rounded,
                 color: AppColors.success,
               ),
@@ -190,7 +207,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             Expanded(
               child: KPICard(
                 title: 'ÜMUMİ XƏRCLƏR',
-                value: '4,120 AZN',
+                value: '${NumberFormat('#,###.00').format(totalExpenses)} AZN',
                 icon: Icons.trending_down_rounded,
                 color: AppColors.error,
               ),
@@ -200,40 +217,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFF4338CA)]),
+                  gradient: LinearProgressIndicator.defaultElementColor == null ? const LinearGradient(colors: [AppColors.primary, Color(0xFF4338CA)]) : null,
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 15)],
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('XALİS MƏNFƏƏT', style: TextStyle(color: Colors.white70, fontSize: 14)),
                         Icon(Icons.auto_graph_rounded, color: Colors.white),
                       ],
                     ),
-                    SizedBox(height: 12),
-                    Text('8,330 AZN', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: GlassCard(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const Icon(Icons.memory_rounded, color: AppColors.primary, size: 32),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-                      child: const Text('AI Analiz'),
-                    ),
+                    const SizedBox(height: 12),
+                    Text('${NumberFormat('#,###.00').format(netProfit)} AZN', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -244,15 +245,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         Expanded(
           child: GlassCard(
             padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.insights_rounded, size: 80, color: AppColors.primary.withValues(alpha: 0.2)),
-                  const SizedBox(height: 16),
-                  const Text('Dinamik qrafiklər tezliklə əlavə olunacaq', style: TextStyle(color: AppColors.textSecondary)),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Analitik İcmal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.insights_rounded, size: 80, color: AppColors.primary.withValues(alpha: 0.1)),
+                        const SizedBox(height: 16),
+                        Text('Seçilmiş tarixlər üzrə ${sales.length} satış və ${expenses.length} xərc sənədi tapıldı.', style: const TextStyle(color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -260,24 +270,64 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildSalesTab() {
-    return const GlassCard(
-      padding: EdgeInsets.all(32),
-      child: Center(child: Text('Satış hesabatları burada göstəriləcək')),
+  Widget _buildSalesTab(List<dynamic> sales) {
+    return GlassCard(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Text('Satış Hesabatı (${sales.length} sənəd)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Divider(height: 32),
+          Expanded(
+            child: sales.isEmpty 
+            ? const Center(child: Text('Məlumat yoxdur'))
+            : ListView.builder(
+                itemCount: sales.length,
+                itemBuilder: (context, index) {
+                  final s = sales[index];
+                  return ListTile(
+                    title: Text(s.customerName ?? 'Anonim Müştəri'),
+                    subtitle: Text(DateFormat('dd.MM.yyyy HH:mm').format(s.createdAt)),
+                    trailing: Text('${s.total.toStringAsFixed(2)} AZN', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  );
+                },
+              ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildExpensesTab() {
-    return const GlassCard(
-      padding: EdgeInsets.all(32),
-      child: Center(child: Text('Xərc analizi burada göstəriləcək')),
+  Widget _buildExpensesTab(List<dynamic> expenses) {
+    return GlassCard(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Text('Xərc Hesabatı (${expenses.length} sənəd)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Divider(height: 32),
+          Expanded(
+            child: expenses.isEmpty 
+            ? const Center(child: Text('Məlumat yoxdur'))
+            : ListView.builder(
+                itemCount: expenses.length,
+                itemBuilder: (context, index) {
+                  final e = expenses[index];
+                  return ListTile(
+                    title: Text(e.category),
+                    subtitle: Text(e.description),
+                    trailing: Text('${e.amount.toStringAsFixed(2)} AZN', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                  );
+                },
+              ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDebtsTab() {
-    return const GlassCard(
-      padding: EdgeInsets.all(32),
-      child: Center(child: Text('Borc və kredit balansı burada göstəriləcək')),
+  Widget _buildDebtsTab(List<dynamic> debts) {
+    return GlassCard(
+      padding: const EdgeInsets.all(32),
+      child: Center(child: Text('Borc & Kredit balansı: ${debts.length} aktiv qeyd')),
     );
   }
 }

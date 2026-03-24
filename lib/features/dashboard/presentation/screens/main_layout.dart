@@ -120,6 +120,7 @@ class MainLayout extends ConsumerWidget {
           const Divider(height: 1),
           _buildSidebarItem(Icons.logout, 'Çıxış', false, () {
             ref.read(authProvider.notifier).logout();
+            context.go('/login');
           }),
           const SizedBox(height: 16),
         ],
