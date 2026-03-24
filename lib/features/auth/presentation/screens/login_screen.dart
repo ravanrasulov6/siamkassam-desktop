@@ -151,7 +151,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ],
                           ),
                           const SizedBox(height: 32),
-                          if (_loginMethod == 'email') _buildEmailForm(authState) else _buildWhatsAppForm(authState),
+                          if (_loginMethod == 'email') 
+                            _buildEmailForm(authState) 
+                          else 
+                            _buildWhatsAppForm(authState),
                           const SizedBox(height: 24),
                           if (authState.error != null)
                             Padding(
@@ -165,36 +168,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                     ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Hesabınız yoxdur?',
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                              ),
-                              TextButton(
-                                onPressed: () => context.go('/register'),
-                                child: const Text(
-                                  'Qeydiyyatdan keçin',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Hesabınız yoxdur?',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        ),
+                        TextButton(
+                          onPressed: () => context.go('/register'),
+                          child: const Text(
+                            'Qeydiyyatdan keçin',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

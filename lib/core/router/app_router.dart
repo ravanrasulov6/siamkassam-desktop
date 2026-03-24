@@ -16,6 +16,8 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/pos/presentation/screens/pos_screen.dart';
 import '../../features/sales/presentation/screens/sales_list_screen.dart';
 import '../../features/dashboard/presentation/screens/main_layout.dart';
+import '../../features/customers/presentation/screens/add_customer_screen.dart';
+import '../../features/products/presentation/screens/add_product_screen.dart';
 
 // Key for the root navigator
 final _rootNavigatorKey = GlobalKey<NavigatorState>();

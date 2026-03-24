@@ -5,6 +5,10 @@ import '../../../../shared/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../customers/presentation/providers/customer_provider.dart';
 import '../../../products/presentation/providers/product_provider.dart';
+import '../../features/sales/presentation/screens/sales_list_screen.dart';
+import '../../features/dashboard/presentation/screens/main_layout.dart';
+import '../../features/customers/presentation/screens/add_customer_screen.dart';
+import '../../features/products/presentation/screens/add_product_screen.dart';
 import '../../../pos/presentation/providers/sale_provider.dart';
 import '../../../debts/presentation/providers/debt_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +33,7 @@ class DashboardScreen extends ConsumerWidget {
       s.createdAt.day == now.day && 
       s.createdAt.month == now.month && 
       s.createdAt.year == now.year
-    ).fold(0.0, (sum, s) => sum! + s.totalAmount) ?? 0.0;
+    ).fold(0.0, (sum, s) => sum! + s.total) ?? 0.0;
 
     // Calculate Total Debts (Receivables - Payables, or just Receivables for simplicity)
     final totalDebts = debts.value?.fold(0.0, (sum, d) => sum! + d.amount) ?? 0.0;
@@ -109,7 +113,7 @@ class DashboardScreen extends ConsumerWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: recentSales.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.glassBorder),
+                    separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.glassBorder),
                     itemBuilder: (context, index) {
                       final sale = recentSales[index];
                       return ListTile(
@@ -120,7 +124,7 @@ class DashboardScreen extends ConsumerWidget {
                         title: Text('Satış #${sale.id.substring(0, 5).toUpperCase()}'),
                         subtitle: Text(DateFormat('HH:mm').format(sale.createdAt)),
                         trailing: Text(
-                          currencyFormat.format(sale.totalAmount),
+                          currencyFormat.format(sale.total),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       );
