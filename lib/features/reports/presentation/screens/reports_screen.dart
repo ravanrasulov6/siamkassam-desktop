@@ -1,6 +1,14 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/kpi_card.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../pos/presentation/providers/sale_provider.dart';
+import '../../../pos/domain/entities/sale_entity.dart';
 import '../../../expenses/presentation/providers/expense_provider.dart';
+import '../../../expenses/domain/entities/expense_entity.dart';
 import '../../../debts/presentation/providers/debt_provider.dart';
+import '../../../debts/domain/entities/debt_entity.dart';
 import 'package:intl/intl.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -167,7 +175,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildTabContent({required List<dynamic> sales, required List<dynamic> expenses, required List<dynamic> debts}) {
+  Widget _buildTabContent({required List<SaleEntity> sales, required List<ExpenseEntity> expenses, required List<DebtEntity> debts}) {
     // Filter by date range
     final filteredSales = sales.where((s) => s.createdAt.isAfter(_dateRange.start) && s.createdAt.isBefore(_dateRange.end.add(const Duration(days: 1)))).toList();
     final filteredExpenses = expenses.where((e) => e.createdAt.isAfter(_dateRange.start) && e.createdAt.isBefore(_dateRange.end.add(const Duration(days: 1)))).toList();
@@ -186,7 +194,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
-  Widget _buildGeneralTab(List<dynamic> sales, List<dynamic> expenses) {
+  Widget _buildGeneralTab(List<SaleEntity> sales, List<ExpenseEntity> expenses) {
     final totalSales = sales.fold(0.0, (sum, s) => sum + s.total);
     final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
     final netProfit = totalSales - totalExpenses;
@@ -216,12 +224,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearProgressIndicator.defaultElementColor == null ? const LinearGradient(colors: [AppColors.primary, Color(0xFF4338CA)]) : null,
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 15)],
-                ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFF4338CA)]),
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 15)],
+                  ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -270,7 +278,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildSalesTab(List<dynamic> sales) {
+  Widget _buildSalesTab(List<SaleEntity> sales) {
     return GlassCard(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -297,7 +305,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildExpensesTab(List<dynamic> expenses) {
+  Widget _buildExpensesTab(List<ExpenseEntity> expenses) {
     return GlassCard(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -324,7 +332,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildDebtsTab(List<dynamic> debts) {
+  Widget _buildDebtsTab(List<DebtEntity> debts) {
     return GlassCard(
       padding: const EdgeInsets.all(32),
       child: Center(child: Text('Borc & Kredit balansı: ${debts.length} aktiv qeyd')),

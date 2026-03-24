@@ -1,5 +1,10 @@
-import '../providers/sale_provider.dart';
-import '../../domain/entities/sale_entity.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/kpi_card.dart';
+import '../../../pos/presentation/providers/sale_provider.dart';
+import '../../../pos/domain/entities/sale_entity.dart';
 import 'package:intl/intl.dart';
 
 class SalesListScreen extends ConsumerStatefulWidget {
@@ -217,12 +222,13 @@ class _SalesListScreenState extends ConsumerState<SalesListScreen> {
               DataColumn(label: Text('ƏMƏLLƏR', style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: sales.map((sale) {
+              final s = sale; // Ensure non-null if list is non-null
               return DataRow(cells: [
-                DataCell(Text(sale.id.substring(0, 8).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary))),
-                DataCell(Text(sale.customerName ?? 'Anonim')),
-                DataCell(Text('₼${sale.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(_buildStatusBadge(sale.paymentMethod == 'cash' ? 'Nəğd' : (sale.paymentMethod == 'card' ? 'Kart' : 'Nisyə'))),
-                DataCell(Text(DateFormat('dd.MM.yyyy HH:mm').format(sale.createdAt))),
+                DataCell(Text(s.id.substring(0, 8).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary))),
+                DataCell(Text(s.customerName ?? 'Anonim')),
+                DataCell(Text('₼${s.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))),
+                DataCell(_buildStatusBadge(s.paymentMethod == 'cash' ? 'Nəğd' : (s.paymentMethod == 'card' ? 'Kart' : 'Nisyə'))),
+                DataCell(Text(DateFormat('dd.MM.yyyy HH:mm').format(s.createdAt))),
                 DataCell(Row(
                   children: [
                     IconButton(onPressed: () {}, icon: const Icon(Icons.print_outlined, size: 20, color: AppColors.textSecondary)),

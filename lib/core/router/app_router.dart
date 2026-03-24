@@ -13,9 +13,13 @@ import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/ai/presentation/screens/ai_screen.dart';
 import '../../features/messages/presentation/screens/messages_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/pos/presentation/screens/pos_screen.dart';
-import '../../features/debts/presentation/screens/debt_list_screen.dart';
-import '../../features/debts/presentation/screens/add_debt_screen.dart';
+import 'package:siam_kassam/features/pos/presentation/screens/pos_screen.dart';
+import 'package:siam_kassam/features/debts/presentation/screens/debt_list_screen.dart';
+import 'package:siam_kassam/features/debts/presentation/screens/add_debt_screen.dart';
+import 'package:siam_kassam/features/dashboard/presentation/screens/main_layout.dart';
+import 'package:siam_kassam/features/customers/presentation/screens/add_customer_screen.dart';
+import 'package:siam_kassam/features/products/presentation/screens/add_product_screen.dart';
+import 'package:siam_kassam/features/sales/presentation/screens/sales_list_screen.dart';
 
 // Key for the root navigator
 final _rootNavigatorKey = GlobalKey<NavigatorState>();

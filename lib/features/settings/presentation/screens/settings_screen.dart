@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../shared/widgets/glass_card.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../auth/presentation/providers/auth_provider.dart';
+import '../../../../shared/widgets/glass_card.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});

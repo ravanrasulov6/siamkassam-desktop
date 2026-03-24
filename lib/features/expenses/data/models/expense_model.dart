@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 import '../../../../core/network/sync_status.dart';
-import '../entities/expense_entity.dart';
+import '../../domain/entities/expense_entity.dart';
 
 part 'expense_model.g.dart';
 
