@@ -59,6 +59,17 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
+  @override
+  Future<bool> requestWhatsAppOTP(String phone) async {
+    return await remoteDataSource.requestWhatsAppOTP(phone);
+  }
+
+  @override
+  Future<String?> verifyWhatsAppOTP(String phone, String otp) async {
+    return await remoteDataSource.verifyWhatsAppOTP(phone, otp);
+  }
+
+
   UserEntity _mapToEntity(supabase.User user, {Map<String, dynamic>? profile}) {
     return UserEntity(
       id: user.id,

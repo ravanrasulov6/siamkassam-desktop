@@ -50,23 +50,20 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yeni Müştəri'),
+        title: const Text('Yeni Müştəri', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-      ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE0E7FF), Color(0xFFF1F5F9), Color(0xFFE0E7FF)],
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          onPressed: () => context.pop(),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
-            child: Container(
+      ),
+      extendBodyBehindAppBar: false,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
               child: GlassCard(
                 padding: const EdgeInsets.all(32),

@@ -7,5 +7,9 @@ abstract class AuthRepository {
   Future<UserEntity?> getCurrentUser();
   Future<void> updateProfile(Map<String, dynamic> updates);
   Stream<UserEntity?> authStateChanges();
+  
+  // WhatsApp OTP methods
+  Future<bool> requestWhatsAppOTP(String phone);
+  Future<String?> verifyWhatsAppOTP(String phone, String otp);
 }
 

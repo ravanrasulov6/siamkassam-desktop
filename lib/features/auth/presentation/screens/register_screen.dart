@@ -56,7 +56,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const Text(
                       'Siam Kassam',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                         letterSpacing: -0.5,
@@ -64,8 +64,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Yeni hesab yaradaraq işlərinizi asanlaşdırın.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                      'Biznesinizi böyütmək üçün ilk addımı atın.',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -149,7 +149,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text('Qeydiyyatı Tamamla →'),
+                                : const Text('Qeydiyyatı Tamamla →', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           const SizedBox(height: 20),
                           Row(

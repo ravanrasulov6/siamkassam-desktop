@@ -122,6 +122,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _logoutUseCase();
     state = state.copyWith(user: null, isLoading: false);
   }
+
+  // WhatsApp OTP Methods
+  Future<bool> requestWhatsAppOTP(String phone) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final success = await _repository.requestWhatsAppOTP(phone);
+      state = state.copyWith(isLoading: false);
+      return success;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<String?> verifyWhatsAppOTP(String phone, String otp) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final sessionLink = await _repository.verifyWhatsAppOTP(phone, otp);
+      state = state.copyWith(isLoading: false);
+      return sessionLink;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
